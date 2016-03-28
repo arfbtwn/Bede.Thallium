@@ -98,7 +98,7 @@ namespace Bede.Thallium
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage message)
+        public virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage message)
         {
             using (var client = Client())
             {
@@ -132,11 +132,11 @@ namespace Bede.Thallium
         /// <param name="body"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public Task<HttpResponseMessage> SendAsync<T>(HttpMethod method,
-                                                      string     template,
-                                                      Params     parameters = null,
-                                                      T          body       = null,
-                                                      Params     headers    = null)
+        public virtual Task<HttpResponseMessage> SendAsync<T>(HttpMethod method,
+                                                              string     template,
+                                                              Params     parameters = null,
+                                                              T          body       = null,
+                                                              Params     headers    = null)
             where T : class
         {
             var msg = Msg(method, template, parameters, body, headers, Content);
@@ -154,11 +154,11 @@ namespace Bede.Thallium
         /// <param name="body"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public Task<HttpResponseMessage> SendAsync<T>(HttpMethod method,
-                                                      string     template,
-                                                      Params     parameters = null,
-                                                      T?         body       = null,
-                                                      Params     headers    = null)
+        public virtual Task<HttpResponseMessage> SendAsync<T>(HttpMethod method,
+                                                              string     template,
+                                                              Params     parameters = null,
+                                                              T?         body       = null,
+                                                              Params     headers    = null)
             where T : struct
         {
             var msg = Msg(method, template, parameters, body, headers, Content);
@@ -306,9 +306,10 @@ namespace Bede.Thallium
         /// </summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-#pragma warning disable 1998
-        protected virtual async Task Success(HttpResponseMessage msg) { }
-#pragma warning restore 1998
+        protected virtual Task Success(HttpResponseMessage msg)
+        {
+            return Task.FromResult(true);
+        }
 
         /// <summary>
         /// Handle success
@@ -327,7 +328,7 @@ namespace Bede.Thallium
         /// <remarks>
         /// The default implementation throws an <see cref="HttpRequestException" />
         /// with a request summary and response content for its message and a set of
-        /// keys inserted into its data collection defined by <see cref="ThalliumExceptionKeys"/>
+        /// keys inserted into its data collection defined by <see cref="ExceptionKeys"/>
         /// </remarks>
         /// <param name="msg"></param>
         /// <returns></returns>
@@ -357,11 +358,11 @@ namespace Bede.Thallium
                 throw new HttpRequestException(err)
                 {
                     Data = {
-                        { ThalliumExceptionKeys.Verb,       req.Method.Method },
-                        { ThalliumExceptionKeys.Version,    req.Version       },
-                        { ThalliumExceptionKeys.RequestUri, req.RequestUri    },
-                        { ThalliumExceptionKeys.Code,       msg.StatusCode    },
-                        { ThalliumExceptionKeys.Content,    str               }
+                        { ExceptionKeys.Verb,       req.Method.Method },
+                        { ExceptionKeys.Version,    req.Version       },
+                        { ExceptionKeys.RequestUri, req.RequestUri    },
+                        { ExceptionKeys.Code,       msg.StatusCode    },
+                        { ExceptionKeys.Content,    str               }
                     }
                 };
             }

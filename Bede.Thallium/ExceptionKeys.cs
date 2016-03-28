@@ -1,7 +1,7 @@
 namespace Bede.Thallium
 {
 #pragma warning disable 1591
-    public static class ThalliumExceptionKeys
+    public static class ExceptionKeys
 #pragma warning restore 1591
     {
         /// <summary>

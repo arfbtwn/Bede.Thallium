@@ -16,7 +16,7 @@ namespace Bede.Thallium
     using Belt;
 
     /// <summary>
-    /// A media type formatter than can form encode sequences
+    /// A media type formatter that can form encode sequences
     /// of key value pairs
     /// </summary>
     public sealed class FormUrlEncoder : MediaTypeFormatter
