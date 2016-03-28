@@ -7,8 +7,8 @@ namespace Bede.Thallium
     public static class Extensions
 #pragma warning restore 1591
     {
-        const string _code    = ThalliumExceptionKeys.Code;
-        const string _content = ThalliumExceptionKeys.Content;
+        const string _code    = ExceptionKeys.Code;
+        const string _content = ExceptionKeys.Content;
 
         /// <summary>
         /// Retrieves the status code from a request exception
@@ -39,6 +39,17 @@ namespace Bede.Thallium
         public static string Content(this HttpRequestException ex)
         {
             return ex.Data.Contains(_content) ? (string) ex.Data[_content] : null;
+        }
+
+
+        /// <summary>
+        /// Check if a status code represents a successful outcome
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        public static bool IsSuccess(this HttpStatusCode code)
+        {
+            return 200 <= (int) code && (int) code < 300;
         }
     }
 }

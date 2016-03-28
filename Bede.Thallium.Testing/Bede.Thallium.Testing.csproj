@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6C80DE8F-EA5C-4BC7-8351-64600CEA0082}</ProjectGuid>
+    <ProjectGuid>{44366635-E201-4C5F-A2DC-965AEE2D6892}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Bede.Thallium</RootNamespace>
-    <AssemblyName>Bede.Thallium</AssemblyName>
+    <RootNamespace>Bede.Thallium.Testing</RootNamespace>
+    <AssemblyName>Bede.Thallium.Testing</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -20,7 +20,7 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\Bede.Thallium.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Bede.Thallium.Testing.XML</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -30,14 +30,16 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Bede.Thallium.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Bede.Thallium.Testing.XML</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Moq">
+      <HintPath>..\packages\Moq.4.2.1510.2205\lib\net40\Moq.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,24 +50,21 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Belt\AsyncExtensions.cs" />
-    <Compile Include="Belt\CollectionExtensions.cs" />
-    <Compile Include="Belt\ReflectionExtensions.cs" />
-    <Compile Include="Api.cs" />
+    <Compile Include="Belt\Builder.cs" />
+    <Compile Include="ApiBuilder.cs" />
+    <Compile Include="Apis.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Factory.cs" />
-    <Compile Include="Descriptor.cs" />
-    <Compile Include="FormUrlEncoder.cs" />
-    <Compile Include="I.cs" />
-    <Compile Include="Attributes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RestClient.cs" />
-    <Compile Include="Rfc2616.cs" />
-    <Compile Include="Rfc6750.cs" />
-    <Compile Include="ExceptionKeys.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Bede.Thallium.nuspec" />
+    <None Include="Bede.Thallium.Testing.nuspec" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bede.Thallium\Bede.Thallium.csproj">
+      <Project>{6c80de8f-ea5c-4bc7-8351-64600cea0082}</Project>
+      <Name>Bede.Thallium</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
