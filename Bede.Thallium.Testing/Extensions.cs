@@ -5,7 +5,9 @@ using Moq.Language.Flow;
 
 namespace Bede.Thallium.Testing
 {
-    static class Extensions
+#pragma warning disable 1591
+    public static class Extensions
+#pragma warning restore 1591
     {
         /// <summary>
         /// Define a Thallium method call response
