@@ -84,6 +84,12 @@ namespace Bede.Thallium
             };
         }
 
+        static string MakeName(Type parent, Type target)
+        {
+            var crete = 'I' == target.Name[1] ? target.Name.Substring(1) : target.Name;
+            return target.Namespace + "." + crete + parent.Name;
+        }
+
         internal Type Build<TBase, T>(Introspector introspector)
             where TBase : RestClient
         {
@@ -114,8 +120,7 @@ namespace Bede.Thallium
                 throw new ArgumentException("All methods must return Tasks");
             }
 
-            var concrete = char.IsUpper(target.Name[1]) ? target.Name.Substring(1) : target.Name;
-            var targetName = target.FullName.Replace(target.Name, concrete);
+            var targetName = MakeName(parent, target);
 
             var typB = ModB.DefineType(name:       targetName,
                                        attr:       TypeAttributes.Class,
