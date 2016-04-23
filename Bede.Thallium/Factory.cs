@@ -5,11 +5,13 @@ using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Bede.Thallium
 {
     using Belt;
+    using Content;
 
     using Ident     = Tuple<Type, Type>;
     using Param     = KeyValuePair<string, object>;
@@ -18,7 +20,7 @@ namespace Bede.Thallium
 
     class Factory
     {
-        static readonly Type[]                  EmpT     = new Type[0];
+        static readonly Type[]                  EmpT     = Type.EmptyTypes;
 
         static readonly Lazy<ModuleBuilder>     Builder  = new Lazy<ModuleBuilder>(ConstructBuilder);
 
@@ -69,18 +71,16 @@ namespace Bede.Thallium
             }
         }
 
-        static Type[] SendAsyncParams(Type body, out Type generic)
+        static Type[] SendAsyncParams()
         {
-            body    = body.AsNullAssignable();
-            generic = body.IsNullable() ? body.GetGenericArguments()[0] : body;
-
             return new []
             {
                 typeof(HttpMethod),
                 typeof(string),
                 typeof(Params),
-                body,
-                typeof(Params)
+                typeof(Params),
+                typeof(HttpContent),
+                typeof(CancellationToken?)
             };
         }
 
@@ -91,7 +91,9 @@ namespace Bede.Thallium
             return parent.Namespace + "." + crete + parent.Name;
         }
 
-        internal Type Build<TBase, T>(Introspector introspector)
+        internal IImp Imp = new Imp();
+
+        internal Type Build<TBase, T>(IIntrospect introspector)
             where TBase : RestClient
         {
             var parent = typeof(TBase);
@@ -100,7 +102,7 @@ namespace Bede.Thallium
             return Build(parent, target, introspector);
         }
 
-        internal Type Build(Type parent, Type target, Introspector introspector)
+        internal Type Build(Type parent, Type target, IIntrospect introspector)
         {
             var ident  = Tuple.Create(target, parent);
 
@@ -109,17 +111,14 @@ namespace Bede.Thallium
                 return Built[ident];
             }
 
-            if (!target.IsInterface) throw new ArgumentException("Type parameter is not an interface");
+            Assertion.IsInterface("target", target);
 
             var methods = target.GetMethods()
                                 .Union(target.GetInterfaces().SelectMany(i => i.GetMethods()))
                                 .Where(ReflectionExtensions.IsMethod)
                                 .ToArray();
 
-            if (!methods.All(x => typeof(Task).IsAssignableFrom(x.ReturnType)))
-            {
-                throw new ArgumentException("All methods must return Tasks");
-            }
+            Assertion.AllAsyncMethods("target", methods);
 
             var targetName = MakeName(parent, target);
 
@@ -130,11 +129,11 @@ namespace Bede.Thallium
 
             foreach (var method in methods)
             {
-                var call = (Descriptor) introspector(method);
+                var call = introspector.Call(target, method);
 
                 var args = method.GetParameters();
 
-                var metB = typB.DefineMethod(name:              method.DeclaringType + "." + method.Name,
+                var metB = typB.DefineMethod(name:              method.DeclaringType.Name + "." + method.Name,
                                              attributes:        method.Attributes & ~MethodAttributes.Abstract,
                                              callingConvention: method.CallingConvention,
                                              returnType:        method.ReturnType,
@@ -145,14 +144,16 @@ namespace Bede.Thallium
                 typB.DefineMethodOverride(metB, method);
 
                 // Separate parameters
-                var bodyP = args.FirstOrDefault(x => call.Body == x);
-                var headP = args.Where         (x => call.Headers.ContainsKey(x)).ToArray();
-                var restP = args.Except        (bodyP.Cons(headP)).ToArray();
+                var bodyP = call.Body.Keys.ToArray();
+                var headP = call.Headers.Keys.ToArray();
+                var restP = args.Except(bodyP.Union(headP)).ToArray();
 
-                // Decide immediately if we can tail call from SendAsync't
+                var caTok = args.FirstOrDefault(x => typeof(CancellationToken?).IsAssignableFrom(x.ParameterType));
+
+                // Decide immediately if we can tail call from SendAsync
                 var thrmT = typeof(Task<HttpResponseMessage>);
                 var tail  = thrmT == method.ReturnType;
-                var ctHM = typeof(HttpMethod).GetConstructor(new [] { typeof(string) });
+                var ctHM  = typeof(HttpMethod).GetConstructor(new [] { typeof(string) });
 
                 ilG.Emit(OpCodes.Ldarg_0);
                 if (!tail)
@@ -181,25 +182,6 @@ namespace Bede.Thallium
                     }
 
                     ilG.Emit(OpCodes.Call, madd);
-                }
-
-                // Convert body parameter
-                var bodyT  = null == bodyP ? typeof(object) : bodyP.ParameterType;
-                var bodyTN = (Type) null;
-                var argT   = SendAsyncParams(bodyT, out bodyTN);
-                var genT   = new [] { bodyTN };
-                var delM   = GetMethod(parent, "SendAsync", genT, argT);
-                if (null == bodyP)
-                {
-                    ilG.Emit(OpCodes.Ldnull);
-                }
-                else
-                {
-                    ilG.Emit(OpCodes.Ldarg, bodyP.Position + 1);
-                    if (bodyT != bodyTN)
-                    {
-                        ilG.Emit(OpCodes.Newobj, bodyTN.GetConstructor(genT));
-                    }
                 }
 
                 // Construct headers dictionary
@@ -239,7 +221,37 @@ namespace Bede.Thallium
                     ilG.Emit(OpCodes.Call, madd);
                 }
 
-                // Call SendAsync't
+                var delM = GetMethod(parent, "SendAsync", null, SendAsyncParams());
+                // Build content
+                if (0 == bodyP.Length)
+                {
+                    ilG.Emit(OpCodes.Ldnull);
+                }
+                else
+                {
+                    var imp = Imp;
+
+                    var ctb = typeof(RestClient).GetMethod("ContentBuilder", BindingFlags.NonPublic | BindingFlags.Instance);
+                    ilG.Emit(OpCodes.Ldarg_0);
+                    ilG.Emit(OpCodes.Callvirt, ctb);
+
+                    imp.Process(ilG, call);
+                }
+
+                // Load cancellation token
+                if (caTok != null)
+                {
+                    ilG.Emit(OpCodes.Ldarg, caTok.Position + 1);
+
+                    ilG.EmitNullConversion(caTok.ParameterType);
+                }
+                else
+                {
+                    ilG.Emit(OpCodes.Ldnull);
+                    ilG.Emit(OpCodes.Castclass, typeof(CancellationToken?));
+                }
+
+                // Call SendAsync
                 if (tail)
                 {
                     ilG.Emit(OpCodes.Tailcall);

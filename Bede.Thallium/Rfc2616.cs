@@ -4,12 +4,25 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
+#pragma warning disable 1591
+
 namespace Bede.Thallium
 {
     using Param  = KeyValuePair<string, object>;
     using Params = Dictionary  <string, object>;
 
-    class Rfc2616
+    /// <summary>
+    /// An internal header sorter, aware of top level request
+    /// and content headers.
+    /// </summary>
+    /// <remarks>
+    /// Had to become public for factory changes as this is
+    /// used directly by generated instructions.
+    ///
+    /// It may disappear from the public interface at any time.
+    /// You have been warned.
+    /// </remarks>
+    public static class Rfc2616
     {
         static string[] RequestHeaders = {
                                              "Accept",
@@ -42,9 +55,22 @@ namespace Bede.Thallium
                                              "Content-MD5",
                                              "Content-Range",
                                              "Content-Type",
+                                             "Content-Disposition",
                                              "Expires",
                                              "Last-Modified"
                                          };
+
+        public static MediaTypeHeaderValue ContentType(string header)
+        {
+            MediaTypeHeaderValue mt;
+            return MediaTypeHeaderValue.TryParse(header, out mt) ? mt : null;
+        }
+
+        public static ContentDispositionHeaderValue Disposition(string header)
+        {
+            ContentDispositionHeaderValue cd;
+            return ContentDispositionHeaderValue.TryParse(header, out cd) ? cd : null;
+        }
 
         public static MediaTypeHeaderValue ContentType(Params headers)
         {
@@ -54,9 +80,7 @@ namespace Bede.Thallium
 
             str = str ?? (null == vals ? null : vals.Cast<object>().Last().ToString());
 
-            return null == str
-                ? null
-                : new MediaTypeHeaderValue(str);
+            return ContentType(str);
         }
 
         public static void Populate(HttpRequestMessage msg, Params headers)

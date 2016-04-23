@@ -1,30 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Formatting;
-using System.Net.Http.Headers;
+using System.Threading;
 
 namespace Bede.Thallium
 {
     using Belt;
+    using Content;
 
     using Param      = KeyValuePair<string, object>;
     using Params     = Dictionary  <string, object>;
 
     using Handler    = HttpMessageHandler;
-    using Formatter  = MediaTypeFormatter;
     using Formatters = MediaTypeFormatterCollection;
 
-    delegate HttpContent Content<in T>(T body, MediaTypeHeaderValue media);
+    using Token      = CancellationToken;
 
     /// <summary>
     /// Base class for dynamic rest clients, subclass it and do the legwork yourself
     /// or generate a client from an interface definition
     /// </summary>
-    public class RestClient
+    public partial class RestClient
     {
         static readonly MediaTypeFormatterCollection Formatters;
 
@@ -85,6 +84,14 @@ namespace Bede.Thallium
         }
 
         /// <summary>
+        /// Gets a content builder
+        /// </summary>
+        protected virtual IContentBuilder ContentBuilder()
+        {
+            return new ContentBuilder(_formatters);
+        }
+
+        /// <summary>
         /// Construct a client
         /// </summary>
         /// <returns></returns>
@@ -97,91 +104,116 @@ namespace Bede.Thallium
         /// Internal send method, included for flexibility
         /// </summary>
         /// <param name="message"></param>
+        /// <param name="token"></param>
         /// <returns></returns>
-        public virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage message)
+        public virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage message, Token? token = null)
         {
             using (var client = Client())
             {
-                return await client.SendAsync(message).Caf();
+                return await client.SendAsync(message, token ?? Token.None).Caf();
             }
         }
 
         /// <summary>
-        /// Send an HTTP message
+        /// Send an HTTP request message
         /// </summary>
+        /// <remarks>
+        /// The principle send method, performs template expansion
+        /// and header packaging
+        /// </remarks>
         /// <param name="method"></param>
         /// <param name="template"></param>
         /// <param name="parameters"></param>
         /// <param name="headers"></param>
-        /// <returns></returns>
-        public Task<HttpResponseMessage> SendAsync(HttpMethod method,
-                                                   string     template,
-                                                   Params     parameters = null,
-                                                   Params     headers    = null)
-        {
-            return SendAsync<object>(method, template, null, parameters, headers);
-        }
-
-        /// <summary>
-        /// Send an HTTP message
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="method"></param>
-        /// <param name="template"></param>
-        /// <param name="parameters"></param>
         /// <param name="body"></param>
-        /// <param name="headers"></param>
+        /// <param name="token"></param>
         /// <returns></returns>
-        public virtual Task<HttpResponseMessage> SendAsync<T>(HttpMethod method,
-                                                              string     template,
-                                                              Params     parameters = null,
-                                                              T          body       = null,
-                                                              Params     headers    = null)
-            where T : class
-        {
-            var msg = Msg(method, template, parameters, body, headers, Content);
-
-            return SendAsync(msg);
-        }
-
-        /// <summary>
-        /// Send an HTTP message
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="method"></param>
-        /// <param name="template"></param>
-        /// <param name="parameters"></param>
-        /// <param name="body"></param>
-        /// <param name="headers"></param>
-        /// <returns></returns>
-        public virtual Task<HttpResponseMessage> SendAsync<T>(HttpMethod method,
-                                                              string     template,
-                                                              Params     parameters = null,
-                                                              T?         body       = null,
-                                                              Params     headers    = null)
-            where T : struct
-        {
-            var msg = Msg(method, template, parameters, body, headers, Content);
-
-            return SendAsync(msg);
-        }
-
-        HttpRequestMessage Msg<T>(HttpMethod method,
-                                  string     template,
-                                  Params     parameters,
-                                  T          body,
-                                  Params     headers,
-                                  Content<T> content)
+        protected Task<HttpResponseMessage> SendAsync(HttpMethod  method,
+                                                      string      template,
+                                                      Params      parameters,
+                                                      Params      headers,
+                                                      HttpContent body,
+                                                      Token?      token = null)
         {
             var msg = new HttpRequestMessage(method, new Uri(_uri, Template(template, parameters)))
             {
-                Content = content(body, Rfc2616.ContentType(headers))
+                Content = body
             };
 
             Headers(msg, _headers);
             Headers(msg, headers);
 
-            return msg;
+            return SendAsync(msg, token);
+        }
+
+        /// <summary>
+        /// Send an HTTP message with no content
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="template"></param>
+        /// <param name="parameters"></param>
+        /// <param name="headers"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public Task<HttpResponseMessage> SendAsync(HttpMethod method,
+                                                   string     template,
+                                                   Params     parameters = null,
+                                                   Params     headers    = null,
+                                                   Token?     token      = null)
+        {
+            return SendAsync(method, template, parameters, headers, (HttpContent) null, token);
+        }
+
+        /// <summary>
+        /// Send an object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="method"></param>
+        /// <param name="template"></param>
+        /// <param name="parameters"></param>
+        /// <param name="body"></param>
+        /// <param name="headers"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public virtual Task<HttpResponseMessage> SendAsync<T>(HttpMethod method,
+                                                              string     template,
+                                                              Params     parameters = null,
+                                                              T          body       = null,
+                                                              Params     headers    = null,
+                                                              Token?     token      = null)
+            where T : class
+        {
+            var type = Rfc2616.ContentType(headers);
+
+            var content = ContentBuilder().Object(body).ContentType(type).Build();
+
+            return SendAsync(method, template, parameters, headers, content, token);
+        }
+
+        /// <summary>
+        /// Send an object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="method"></param>
+        /// <param name="template"></param>
+        /// <param name="parameters"></param>
+        /// <param name="body"></param>
+        /// <param name="headers"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public virtual Task<HttpResponseMessage> SendAsync<T>(HttpMethod method,
+                                                              string     template,
+                                                              Params     parameters = null,
+                                                              T?         body       = null,
+                                                              Params     headers    = null,
+                                                              Token?     token      = null)
+            where T : struct
+        {
+            var type = Rfc2616.ContentType(headers);
+
+            var content = ContentBuilder().Struct(body).ContentType(type).Build();
+
+            return SendAsync(method, template, parameters, headers, content, token);
         }
 
         /// <summary>
@@ -205,62 +237,6 @@ namespace Bede.Thallium
             if (null == headers) return;
 
             Rfc2616.Populate(msg, headers);
-        }
-
-        /// <summary>
-        /// Produce content
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="body"></param>
-        /// <param name="mediaType"></param>
-        /// <returns></returns>
-        protected virtual HttpContent Content<T>(T body, MediaTypeHeaderValue mediaType)
-            where T : class
-        {
-            var f = null == body ? null : Formatter<T>(mediaType);
-            var m = null == f    ? null : mediaType ?? f.SupportedMediaTypes.First();
-
-            return null == body
-                ? null
-                : new ObjectContent(typeof(T), body, f, m);
-        }
-
-        /// <summary>
-        /// Produce content
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="body"></param>
-        /// <param name="mediaType"></param>
-        /// <returns></returns>
-        protected virtual HttpContent Content<T>(T? body, MediaTypeHeaderValue mediaType)
-            where T : struct
-        {
-            var f = null == body ? null : Formatter<T>(mediaType);
-            var m = null == f    ? null : mediaType ?? f.SupportedMediaTypes.First();
-
-            return null == body
-                ? null
-                : new ObjectContent(typeof(T), body, f, m);
-        }
-
-        /// <summary>
-        /// Supply a media type formatter for objects of type T
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="mediaType"></param>
-        /// <returns></returns>
-        protected virtual Formatter Formatter<T>(MediaTypeHeaderValue mediaType)
-        {
-            var f = null == mediaType
-                ? _formatters.First()
-                : _formatters.FindWriter(typeof(T), mediaType);
-
-            if (null == f)
-            {
-                throw new InvalidOperationException("No media type formatter for " + typeof(T).Name + " as " + mediaType);
-            }
-
-            return f;
         }
 
         /// <summary>

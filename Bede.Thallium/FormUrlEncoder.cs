@@ -24,6 +24,8 @@ namespace Bede.Thallium
         public FormUrlEncoder()
         {
             SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/x-www-form-urlencoded"));
+            SupportedEncodings.Add(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            SupportedEncodings.Add(new UnicodeEncoding(bigEndian: false, byteOrderMark: false, throwOnInvalidBytes: true));
         }
 
         public override bool CanReadType(Type type)
@@ -62,16 +64,21 @@ namespace Bede.Thallium
                     sb.Append('&');
                 }
 
-                sb.Append(Uri.EscapeDataString(kv.Key.ToString()));
+                sb.Append(Escape(kv.Key.ToString()));
                 sb.Append('=');
-                sb.Append(Uri.EscapeDataString((kv.Value ?? string.Empty).ToString()));
+                sb.Append(Escape((kv.Value ?? string.Empty).ToString()));
 
                 first = false;
             }
 
-            var buf = Encoding.UTF8.GetBytes(sb.ToString());
+            var buf = Encoding.ASCII.GetBytes(sb.ToString());
 
             return writeStream.WriteAsync(buf, 0, buf.Length);
+        }
+
+        string Escape(string input)
+        {
+            return Uri.EscapeDataString(input);
         }
     }
 }

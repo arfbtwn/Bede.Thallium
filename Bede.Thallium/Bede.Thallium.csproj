@@ -52,14 +52,27 @@
     <Compile Include="Belt\CollectionExtensions.cs" />
     <Compile Include="Belt\ReflectionExtensions.cs" />
     <Compile Include="Api.cs" />
+    <Compile Include="Content\ContentBuilder.cs" />
+    <Compile Include="Content\ContentBuilderExtensions.cs" />
+    <Compile Include="Content\IImp.cs" />
+    <Compile Include="Content\IContentBuilder.cs" />
+    <Compile Include="Content\ObjectContent.cs" />
+    <Compile Include="Assertion.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="Descriptor.cs" />
     <Compile Include="FormUrlEncoder.cs" />
     <Compile Include="I.cs" />
     <Compile Include="Attributes.cs" />
+    <Compile Include="Introspection\Adapter.cs" />
+    <Compile Include="Introspection\AttributeInspection.cs" />
+    <Compile Include="Introspection\Simple.cs" />
+    <Compile Include="Introspection\Fluent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RestClient.cs" />
+    <Compile Include="RestClient.Obsolete.cs">
+      <DependentUpon>RestClient.cs</DependentUpon>
+    </Compile>
     <Compile Include="Rfc2616.cs" />
     <Compile Include="Rfc6750.cs" />
     <Compile Include="ExceptionKeys.cs" />
@@ -67,6 +80,7 @@
   <ItemGroup>
     <None Include="Bede.Thallium.nuspec" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Reflection;
 
+#pragma warning disable 612, 1591
+
 namespace Bede.Thallium
 {
     using Static    = Dictionary<string, string[]>;
     using Headers   = Dictionary<ParameterInfo, string>;
+    using Body      = Dictionary<ParameterInfo, ContentDescription>;
     using Parameter = ParameterInfo;
     using Call      = Tuple<
                             HttpMethod,
@@ -19,14 +22,14 @@ namespace Bede.Thallium
     /// <summary>
     /// Class defining a simple HTTP API call
     /// </summary>
+    [Obsolete]
     public class Descriptor
     {
-#pragma warning disable 1591
         public HttpMethod Verb;
         public string     Template;
         public Headers    Headers;
-        public Parameter  Body;
         public Static     Static;
+        public Parameter  Body;
 
         public static implicit operator Call(Descriptor call)
         {
@@ -40,10 +43,47 @@ namespace Bede.Thallium
                 Verb     = call.Item1,
                 Template = call.Item2,
                 Headers  = call.Item3,
-                Body     = call.Item4,
-                Static   = call.Item5
+                Static   = call.Item5,
+                Body     = call.Item4
             };
         }
-#pragma warning restore 1591
+    }
+
+    public class ContentDescription
+    {
+        public string Type;
+        public string Disposition;
+
+        public bool   SetName;
+        public bool   SetFileName;
+    }
+
+    public class Description
+    {
+        public HttpMethod Verb;
+        public string     Template;
+        public Headers    Headers;
+        public Static     Static;
+
+        public string     Subtype;
+        public string     Boundary;
+        public Body       Body;
+
+        public static implicit operator Description(Descriptor call)
+        {
+            return new Description
+            {
+                Verb     = call.Verb,
+                Template = call.Template,
+                Headers  = call.Headers,
+                Static   = call.Static,
+                Body     = { { call.Body, new ContentDescription() } }
+            };
+        }
+
+        public static implicit operator Description(Call call)
+        {
+            return (Descriptor) call;
+        }
     }
 }

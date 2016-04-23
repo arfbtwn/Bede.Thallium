@@ -6,6 +6,9 @@ using System.Reflection;
 
 namespace Bede.Thallium
 {
+    using Introspection;
+    using Content;
+
     using Handler    = HttpMessageHandler;
     using Formatter  = MediaTypeFormatter;
     using Formatters = MediaTypeFormatterCollection;
@@ -30,7 +33,22 @@ namespace Bede.Thallium
     /// </remarks>
     /// <param name="method"></param>
     /// <returns></returns>
+    [Obsolete]
     public delegate Call Introspector(MethodInfo method);
+
+    /// <summary>
+    /// API introspection interface
+    /// </summary>
+    public interface IIntrospect
+    {
+        /// <summary>
+        /// Describe a method
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        Description Call(Type parent, MethodInfo method);
+    }
 
     /// <summary>
     /// A static access point to the client factory
@@ -44,6 +62,31 @@ namespace Bede.Thallium
             return Activator.CreateInstance(type, args);
         }
 
+#pragma warning disable 612
+        static IIntrospect _up(Introspector i)
+#pragma warning restore 612
+        {
+            return null == i ? (IIntrospect) new Simple() : new Adapter(i);
+        }
+
+        /// <summary>
+        /// Gets a fluently configurable introspector
+        /// </summary>
+        /// <returns></returns>
+        public static Fluent<T> Fluent<T>()
+        {
+            return new Fluent<T>();
+        }
+
+        /// <summary>
+        /// Gets or Sets the <see cref="IImp" />
+        /// </summary>
+        public static IImp Imp
+        {
+            get { return Factory.Imp;  }
+            set { Factory.Imp = value; }
+        }
+
         /// <summary>
         /// Create a type for the given interface
         /// </summary>
@@ -51,9 +94,22 @@ namespace Bede.Thallium
         /// <param name="parent"></param>
         /// <param name="introspector"></param>
         /// <returns></returns>
+        [Obsolete]
         public static Type Emit(Type type, Type parent = null, Introspector introspector = null)
         {
-            return Factory.Build(parent ?? typeof(RestClient), type, introspector ?? I.Introspect);
+            return Factory.Build(parent ?? typeof(RestClient), type, _up(introspector));
+        }
+
+        /// <summary>
+        /// Create a type for the given interface
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="parent"></param>
+        /// <param name="introspector"></param>
+        /// <returns></returns>
+        public static Type Emit(Type type, Type parent = null, IIntrospect introspector = null)
+        {
+            return Factory.Build(parent ?? typeof(RestClient), type, introspector ?? new Simple());
         }
 
         /// <summary>
@@ -62,7 +118,19 @@ namespace Bede.Thallium
         /// <typeparam name="T"></typeparam>
         /// <param name="introspector"></param>
         /// <returns></returns>
+        [Obsolete]
         public static Type Emit<T>(Introspector introspector = null)
+        {
+            return Emit(typeof(T), introspector: introspector);
+        }
+
+        /// <summary>
+        /// Create a type for the given interface
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="introspector"></param>
+        /// <returns></returns>
+        public static Type Emit<T>(IIntrospect introspector = null)
         {
             return Emit(typeof(T), introspector: introspector);
         }
@@ -76,7 +144,7 @@ namespace Bede.Thallium
         /// <returns></returns>
         public static object New(Type type, Type parent, params object[] args)
         {
-            return _new(Emit(type, parent), args);
+            return _new(Emit(type, parent, (IIntrospect) null), args);
         }
 
         /// <summary>
@@ -116,7 +184,13 @@ namespace Bede.Thallium
 #pragma warning disable 1591
     public static class Api<TBase, T> where TBase : RestClient
     {
+        [Obsolete]
         public static Type Emit(Introspector introspector = null)
+        {
+            return Api.Emit(typeof(T), typeof(TBase), introspector);
+        }
+
+        public static Type Emit(IIntrospect introspector = null)
         {
             return Api.Emit(typeof(T), typeof(TBase), introspector);
         }
@@ -129,7 +203,13 @@ namespace Bede.Thallium
 
     public static class Api<T>
     {
+        [Obsolete]
         public static Type Emit(Introspector introspector = null)
+        {
+            return Api<RestClient, T>.Emit(introspector);
+        }
+
+        public static Type Emit(IIntrospect introspector = null)
         {
             return Api<RestClient, T>.Emit(introspector);
         }

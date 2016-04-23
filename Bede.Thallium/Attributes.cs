@@ -1,6 +1,7 @@
 ﻿#pragma warning disable 1591
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Bede.Thallium
 {
@@ -80,10 +81,10 @@ namespace Bede.Thallium
     }
 
     /// <summary>
-    /// Marks a parameter as the request body
+    /// Marks a parameter as body
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class BodyAttribute : Attribute { }
+    public class BodyAttribute : Attribute { }
 
     /// <summary>
     /// Marks a member as a header with the given name
@@ -110,15 +111,112 @@ namespace Bede.Thallium
         }
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method), Obsolete]
     public class ContentTypeAttribute : HeaderAttribute
     {
-        public ContentTypeAttribute(string spec) : base("Content-Type", spec) { }
+        public ContentTypeAttribute(string type) : base("Content-Type", type) { }
+    }
+
+    public abstract class ContentHeaderAttribute : BodyAttribute
+    {
+        public virtual string Name  { get; set; }
+        public virtual string Value { get; set; }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public class TypeAttribute : ContentHeaderAttribute
+    {
+        protected TypeAttribute() { }
+
+        public TypeAttribute(string type)
+        {
+            Value = type;
+        }
+
+        public sealed override string Name
+        {
+            get { return "Content-Type"; }
+            set { throw new InvalidOperationException(); }
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public class DispositionAttribute : ContentHeaderAttribute
+    {
+        protected DispositionAttribute() { }
+
+        public DispositionAttribute(string disposition)
+        {
+            Value = disposition;
+        }
+
+        public sealed override string Name
+        {
+            get { return "Content-Disposition"; }
+            set { throw new InvalidOperationException(); }
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class FormDataAttribute : DispositionAttribute
+    {
+        public FormDataAttribute() { }
+
+        public FormDataAttribute(string name)
+        {
+            Name = name;
+        }
+
+        public FormDataAttribute(string name, string fileName)
+        {
+            Name     = name;
+            FileName = fileName;
+        }
+
+        public new string Name { get; set; }
+        public string FileName { get; set; }
+
+        public override string Value
+        {
+            get
+            {
+                return
+                    new ContentDispositionHeaderValue("form-data")
+                    {
+                        Name         = Name,
+                        FileName     = FileName,
+                        FileNameStar = FileName
+
+                    }.ToString();
+            }
+            set { throw new InvalidOperationException(); }
+        }
     }
 
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class FormUrlAttribute : ContentTypeAttribute
+    public class MultipartAttribute : Attribute
+    {
+        public MultipartAttribute() { }
+
+        public MultipartAttribute(string subType, string boundary)
+        {
+            Subtype  = subType;
+            Boundary = boundary;
+        }
+
+        public string Subtype  { get; set; }
+        public string Boundary { get; set; }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class FormUrlAttribute : TypeAttribute
     {
         public FormUrlAttribute() : base("application/x-www-form-urlencoded") { }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class OctetAttribute : TypeAttribute
+    {
+        public OctetAttribute() : base("application/octet-stream") { }
     }
 }
