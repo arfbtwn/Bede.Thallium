@@ -1,19 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
 {
-    using NUnit.Framework;
-
     [TestFixture]
     class Generation
     {
         [Test]
+        public void CrudClientGen()
+        {
+            var sut = Api<TestClient, ICrudApi<Ping>>.New(new Uri("http://localhost.:80"));
+
+            Assert.IsNotNull(sut);
+
+            sut.Create(new Ping()).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        [Test]
         public void RestClientGen()
         {
-            var sut = Api<TestClient, IFoo>.New(new Uri("http://ew1-dv01-484-01.ad.bedegaming.com:3638"));
+            var sut = Api<TestClient, IFoo>.New(new Uri("http://ew1-dv01-484-ilb.ad.bedegaming.com:3638"));
 
             var rc = sut as TestClient;
 
@@ -30,8 +40,10 @@ namespace Bede.Thallium.UnitTests
             dict.Foo = 2;
             dict.Bar = 5;
 
-            sut.DeleteSession(12345, "mySession", "foobar", "sitecode").ConfigureAwait(false).GetAwaiter().GetResult();
-            sut.DeleteSession(new [] { "123", "mySession" }, dict).ConfigureAwait(false).GetAwaiter().GetResult();
+            var fs = File.OpenRead("..\\..\\app.config");
+
+            sut.DeleteSession(new [] { "123", "mySession" }, "arfbtwn", dict, dict, fs).Wait();
+            sut.DeleteSession(12345, "mySession", "foobar", "sitecode").Wait();
         }
     }
 
@@ -46,7 +58,6 @@ namespace Bede.Thallium.UnitTests
         public string Version        { get; set; }
     }
 
-    [Route("api")]
     public interface IBar
     {
         [Get("ping")]
@@ -59,7 +70,21 @@ namespace Bede.Thallium.UnitTests
         [Delete, Route("gamesession{/id,session}")]
         Task DeleteSession(long id, string session, [Header("X-Correlation-Token")] string coral, [Header("X-Site-Code")] string siteCode);
 
-        [Delete("gamesession{/id*}"), FormUrl]
-        Task DeleteSession(string[] id, IDictionary<string, object> body);
+        [Delete("gamesession{/id*}"), Multipart("form-data", "BOUNDARY")]
+        Task DeleteSession(string[] id, [FormData("string")]            string                      body1,
+                                        [FormData("first"), FormUrl]    IDictionary<string, object> body2,
+                                        [FormData("second", "theFile")] IDictionary<string, object> body3,
+                                        [FormData, Octet]               FileStream                  theOtherFile);
+    }
+
+    public interface ICrudApi<T>
+    {
+        [Post]           Task<T> Create(T body);
+
+        [Get("{id}")]    Task<T> Read(long id);
+
+        [Put]            Task<T> Update(T body);
+
+        [Delete("{id}")] Task    Delete(long id);
     }
 }
