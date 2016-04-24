@@ -1,4 +1,4 @@
-﻿namespace Bede.Thallium.Testing
+﻿namespace Bede.Thallium.Belt
 {
     /// <summary>
     /// Marks a type that creates another type

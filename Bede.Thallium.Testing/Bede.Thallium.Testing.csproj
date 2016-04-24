@@ -50,7 +50,6 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Belt\Builder.cs" />
     <Compile Include="ApiBuilder.cs" />
     <Compile Include="Apis.cs" />
     <Compile Include="Extensions.cs" />

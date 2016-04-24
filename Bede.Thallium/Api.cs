@@ -73,9 +73,9 @@ namespace Bede.Thallium
         /// Gets a fluently configurable introspector
         /// </summary>
         /// <returns></returns>
-        public static Fluent<T> Fluent<T>()
+        public static IFluent Fluent()
         {
-            return new Fluent<T>();
+            return new Fluent();
         }
 
         /// <summary>
