@@ -8,6 +8,8 @@ using Moq;
 
 namespace Bede.Thallium.Testing
 {
+    using Belt;
+
     /// <summary>
     /// Base interface for API building
     /// </summary>

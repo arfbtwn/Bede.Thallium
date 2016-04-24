@@ -7,11 +7,13 @@ using System.Net.Http.Headers;
 
 namespace Bede.Thallium.Content
 {
+    using Belt;
+
     /// <summary>
     /// An interface defining quick methods of constructing HTTP content
     /// and doing it right
     /// </summary>
-    public interface IContentBuilder
+    public interface IContentBuilder : IBuilder<HttpContent>
     {
         /// <summary>
         /// Get the last content
@@ -76,7 +78,5 @@ namespace Bede.Thallium.Content
         /// </summary>
         /// <returns></returns>
         IContentBuilder Reduce();
-
-        HttpContent Build();
     }
 }

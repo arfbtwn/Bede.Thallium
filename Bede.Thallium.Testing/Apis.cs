@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace Bede.Thallium.Testing
 {
+    using Belt;
+
     /// <summary>
     /// Base interface for multi-case API building
     /// </summary>

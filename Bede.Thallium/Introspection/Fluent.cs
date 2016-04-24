@@ -1,51 +1,130 @@
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
-
-#pragma warning disable 1591
 
 namespace Bede.Thallium.Introspection
 {
-    public class Fluent<T> : IIntrospect
+    using Belt;
+
+    using Map  = Dictionary <MethodInfo, Description>;
+    using IMap = IDictionary<MethodInfo, Description>;
+
+    /// <summary>
+    /// A fluent introspector interface
+    /// </summary>
+    public interface IFluent : IMap, IIntrospect
     {
-        readonly Dictionary<MethodInfo, Description> _map = new Dictionary<MethodInfo, Description>();
+        /// <summary>
+        /// Use a fallback introspector
+        /// </summary>
+        /// <param name="introspector"></param>
+        /// <returns></returns>
+        IFluent Fallback(IIntrospect introspector);
+
+        /// <summary>
+        /// Include another map
+        /// </summary>
+        /// <param name="map"></param>
+        /// <returns></returns>
+        IFluent Include(IMap map);
+
+        /// <summary>
+        /// Return an API specific introspector
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        IFluent<T> Api<T>();
+    }
+
+    /// <summary>
+    /// A fluent introspector interface for an API type
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IFluent<T> : IMap
+    {
+        /// <summary>
+        /// Add a description for the given expression
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="description"></param>
+        /// <returns></returns>
+        IFluent<T> With(MethodInfo method, Description description);
+    }
+
+    class Fluent : Map, IFluent
+    {
+        readonly Dictionary<Type, IMap> _maps;
 
         IIntrospect _default;
 
-        public Fluent<T> Default(IIntrospect introspector)
+        public Fluent()
+        {
+            _maps = new Dictionary<Type, IMap>();
+        }
+
+        public IFluent Fallback(IIntrospect introspector)
         {
             _default = introspector;
-
             return this;
         }
 
-        public Fluent<T> With<TV>(Expression<Func<T, TV>> expr, Description description)
+        public IFluent<T> Api<T>()
         {
-            var me = (MethodCallExpression) expr.Body;
-            var mi = me.Method;
+            return (IFluent<T>) _maps.Lookup(typeof(T), new Fluent<T>(this));
+        }
 
-            _map[mi] = description;
-
+        public IFluent Include(IMap map)
+        {
+            foreach (var i in map)
+            {
+                this[i.Key] = i.Value;
+            }
             return this;
+        }
+
+        void Reduce()
+        {
+            foreach (var i in _maps.Values)
+            {
+                Include(i);
+            }
+
+            _maps.Clear();
         }
 
         public Description Call(Type parent, MethodInfo method)
         {
-            if (null == method) throw new ArgumentNullException("method");
+            Reduce();
 
-            Description mapped;
-            if (_map.TryGetValue(method, out mapped))
+            Description o;
+            if (!TryGetValue(method, out o))
             {
-                return mapped;
+                return o;
             }
 
-            if (null != _default)
-            {
-                return _map[method] = _default.Call(parent, method);
-            }
+            return _default.Call(parent, method);
+        }
+    }
 
-            throw new ArgumentException("Unmapped method: " + method.Name, "method");
+    class Fluent<T> : Map, IFluent<T>
+    {
+        readonly IFluent _back;
+
+        public Fluent(IFluent back)
+        {
+            _back = back;
+        }
+
+        public IFluent<T> With(MethodInfo method, Description description)
+        {
+            this[method] = description;
+
+            return this;
+        }
+
+        public IFluent Back()
+        {
+            return _back;
         }
     }
 }
