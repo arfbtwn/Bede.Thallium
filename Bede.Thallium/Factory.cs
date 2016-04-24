@@ -86,8 +86,9 @@ namespace Bede.Thallium
 
         static string MakeName(Type parent, Type target)
         {
-            var crete = 'I' == target.Name[1] ? target.Name.Substring(1) : target.Name;
-            return target.Namespace + "." + crete + parent.Name;
+            var tn = target.Name;
+            var crete = 'I' == tn[0] ? tn.Substring(1) : tn;
+            return parent.Namespace + "." + crete + parent.Name;
         }
 
         internal Type Build<TBase, T>(Introspector introspector)
