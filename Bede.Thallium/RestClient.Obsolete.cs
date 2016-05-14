@@ -46,8 +46,8 @@ namespace Bede.Thallium
         protected virtual MediaTypeFormatter Formatter<T>(MediaTypeHeaderValue mediaType)
         {
             var f = null == mediaType
-                ? _formatters.First()
-                : _formatters.FindWriter(typeof(T), mediaType);
+                ? Formatters.First()
+                : Formatters.FindWriter(typeof(T), mediaType);
 
             Assertion.HasFormatter(f, typeof(T), mediaType);
 

@@ -36,6 +36,8 @@ namespace Bede.Thallium.UnitTests
 
             Assert.IsNotNull(res);
 
+            sut.DeleteSession(12345, "mySession", "foobar", "sitecode").Wait();
+
             dynamic dict = new ExpandoObject();
             dict.Foo = 2;
             dict.Bar = 5;
@@ -43,7 +45,6 @@ namespace Bede.Thallium.UnitTests
             var fs = File.OpenRead("..\\..\\app.config");
 
             sut.DeleteSession(new [] { "123", "mySession" }, "arfbtwn", dict, dict, fs).Wait();
-            sut.DeleteSession(12345, "mySession", "foobar", "sitecode").Wait();
         }
     }
 

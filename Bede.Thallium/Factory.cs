@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
@@ -13,10 +12,8 @@ namespace Bede.Thallium
     using Belt;
     using Content;
 
-    using Ident     = Tuple<Type, Type>;
-    using Param     = KeyValuePair<string, object>;
-    using Params    = Dictionary<string, object>;
-    using Formatter = MediaTypeFormatter;
+    using Ident  = Tuple<Type, Type>;
+    using Params = Dictionary<string, object>;
 
     class Factory
     {
@@ -104,7 +101,10 @@ namespace Bede.Thallium
 
         internal Type Build(Type parent, Type target, IIntrospect introspector)
         {
-            var ident  = Tuple.Create(target, parent);
+            Assertion.IsClass("parent", parent);
+            Assertion.IsNotAbstract("parent", parent);
+
+            var ident = Tuple.Create(target, parent);
 
             if (Built.ContainsKey(ident))
             {
@@ -231,7 +231,7 @@ namespace Bede.Thallium
                 {
                     var imp = Imp;
 
-                    var ctb = typeof(RestClient).GetMethod("ContentBuilder", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var ctb = typeof(BaseClient).GetMethod("ContentBuilder", BindingFlags.NonPublic | BindingFlags.Instance);
                     ilG.Emit(OpCodes.Ldarg_0);
                     ilG.Emit(OpCodes.Callvirt, ctb);
 
