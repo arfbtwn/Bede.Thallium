@@ -10,6 +10,16 @@ namespace Bede.Thallium
 {
     static class Assertion
     {
+        internal static void IsClass(string parameterName, Type type)
+        {
+            if (!type.IsClass) throw new ArgumentException(type.Name + " is not a class", parameterName);
+        }
+
+        internal static void IsNotAbstract(string parameterName, Type type)
+        {
+            if (type.IsAbstract) throw new ArgumentException(type.Name + " is abstract", parameterName);
+        }
+
         internal static void IsInterface(string parameterName, Type type)
         {
             if (!type.IsInterface) throw new ArgumentException(type.Name + " is not an interface", parameterName);
