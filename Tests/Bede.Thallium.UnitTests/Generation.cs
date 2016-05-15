@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -17,7 +18,8 @@ namespace Bede.Thallium.UnitTests
 
             Assert.IsNotNull(sut);
 
-            sut.Create(new Ping()).ConfigureAwait(false).GetAwaiter().GetResult();
+            sut.Create(new Ping()).Wait();
+            sut.Create(new Ping()).Wait();
         }
 
         [Test]
@@ -51,6 +53,7 @@ namespace Bede.Thallium.UnitTests
     public class TestClient : RestClient
     {
         public TestClient(Uri uri) : base(uri) { }
+        public TestClient(Uri uri, HttpMessageHandler handler) : base(uri, handler) { }
     }
 
     public class Ping
