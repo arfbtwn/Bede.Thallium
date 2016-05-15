@@ -4,6 +4,8 @@ using System.Net.Http.Formatting;
 
 namespace Bede.Thallium
 {
+    using Handlers;
+
     using Handler    = HttpMessageHandler;
     using Formatters = MediaTypeFormatterCollection;
 
@@ -46,7 +48,7 @@ namespace Bede.Thallium
             if (null == uri) throw new ArgumentNullException(nameof(uri));
 
             Uri        = uri;
-            Handler    = handler    ?? new HttpClientHandler();
+            Handler    = handler    ?? new ThrowOnFail();
             Formatters = formatters ?? Default;
         }
 

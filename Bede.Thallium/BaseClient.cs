@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Formatting;
@@ -10,6 +9,7 @@ namespace Bede.Thallium
 {
     using Belt;
     using Content;
+    using Handlers;
 
     using Params     = Dictionary<string, object>;
     using Handler    = HttpMessageHandler;
@@ -49,7 +49,7 @@ namespace Bede.Thallium
         /// <summary>
         /// Gets a message handler
         /// </summary>
-        protected virtual Handler Handler => new HttpClientHandler();
+        protected virtual Handler Handler => new ThrowOnFail();
 
         /// <summary>
         /// Gets a content builder
@@ -206,20 +206,10 @@ namespace Bede.Thallium
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        protected async Task<HttpResponseMessage> Return(Task<HttpResponseMessage> message)
+        [Obsolete]
+        protected Task<HttpResponseMessage> Return(Task<HttpResponseMessage> message)
         {
-            var msg = await message.Caf();
-
-            if (msg.IsSuccessStatusCode)
-            {
-                await Success(msg).Caf();
-            }
-            else
-            {
-                await Fail(msg).Caf();
-            }
-
-            return msg;
+            return message;
         }
 
         /// <summary>
@@ -230,7 +220,7 @@ namespace Bede.Thallium
         /// <returns></returns>
         protected async Task<T> Return<T>(Task<HttpResponseMessage> message)
         {
-            var msg = await Return(message).Caf();
+            var msg = await message.Caf();
 
             var task = msg.IsSuccessStatusCode ? Success<T>(msg) : Fail<T>(msg);
 
@@ -242,6 +232,7 @@ namespace Bede.Thallium
         /// </summary>
         /// <param name="msg"></param>
         /// <returns></returns>
+        [Obsolete]
         protected virtual Task Success(HttpResponseMessage msg)
         {
             return Task.FromResult(true);
@@ -268,40 +259,10 @@ namespace Bede.Thallium
         /// </remarks>
         /// <param name="msg"></param>
         /// <returns></returns>
-        protected virtual async Task Fail(HttpResponseMessage msg)
+        [Obsolete]
+        protected virtual Task Fail(HttpResponseMessage msg)
         {
-            using (var mem = new MemoryStream())
-            using (var red = new StreamReader(mem, true))
-            {
-                await msg.Content.CopyToAsync(mem).Caf();
-
-                mem.Position = 0;
-
-                var str = await red.ReadToEndAsync().Caf();
-                var req = msg.RequestMessage;
-
-                var err = string.Format("{0} {1} HTTP/{2}\n" +
-                                        "host: {3}:{4}\n" +
-                                        "code: {5:D} => {5}\n" +
-                                        "{6}",
-                                        req.Method,
-                                        req.RequestUri.PathAndQuery,
-                                        req.Version,
-                                        req.RequestUri.Host,
-                                        req.RequestUri.Port,
-                                        msg.StatusCode,
-                                        str);
-                throw new HttpRequestException(err)
-                {
-                    Data = {
-                        { ExceptionKeys.Verb,       req.Method.Method },
-                        { ExceptionKeys.Version,    req.Version       },
-                        { ExceptionKeys.RequestUri, req.RequestUri    },
-                        { ExceptionKeys.Code,       msg.StatusCode    },
-                        { ExceptionKeys.Content,    str               }
-                    }
-                };
-            }
+            return Task.FromResult(false);
         }
 
         /// <summary>
