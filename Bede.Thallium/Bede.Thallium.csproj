@@ -59,7 +59,9 @@
     </Compile>
     <Compile Include="Handlers\HandlerBuilder.cs" />
     <Compile Include="Handlers\RecordingHandler.cs" />
+    <Compile Include="Auth\Authenticators.cs" />
     <Compile Include="IApi.cs" />
+    <Compile Include="Auth\IOAuth2.cs" />
     <Compile Include="Clients\BaseClient.cs" />
     <Compile Include="Clients\Configuration.cs" />
     <Compile Include="Clients\DynamicClient.cs" />
