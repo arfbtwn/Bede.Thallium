@@ -14,6 +14,16 @@ namespace Bede.Thallium.UnitTests
     class Introspection
     {
         [Test]
+        public void Single()
+        {
+            var sut = Api.Fluent().Api<IBar>().Call(x => x.Ping()).Get("ping").Back().Back();
+
+            var api = Api<IBar>.Emit(sut);
+
+            Assert.IsNotNull(api);
+        }
+
+        [Test]
         public void Fluent()
         {
             var sut = Api.Fluent();
