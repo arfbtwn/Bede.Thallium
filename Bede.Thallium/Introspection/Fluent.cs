@@ -40,7 +40,7 @@ namespace Bede.Thallium.Introspection
     /// A fluent introspector interface for an API type
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IFluent<T> : IMap
+    public interface IFluent<T> : IMap, IBack<IFluent>
     {
         /// <summary>
         /// Add a description for the given expression
@@ -97,12 +97,7 @@ namespace Bede.Thallium.Introspection
             Reduce();
 
             Description o;
-            if (!TryGetValue(method, out o))
-            {
-                return o;
-            }
-
-            return _default.Call(parent, method);
+            return TryGetValue(method, out o) ? o : _default.Call(parent, method);
         }
     }
 

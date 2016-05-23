@@ -188,7 +188,7 @@ namespace Bede.Thallium
                 ilG.Emit(OpCodes.Newobj, ctor);
 
                 // Pack static headers, but ignore the ones we would replace
-                foreach (var head in call.Static)
+                foreach (var head in call.Static ?? new Dictionary<string, string[]>())
                 {
                     ilG.Emit(OpCodes.Dup);
                     ilG.Emit(OpCodes.Ldstr, head.Key);
