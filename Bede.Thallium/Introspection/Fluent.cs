@@ -12,8 +12,13 @@ namespace Bede.Thallium.Introspection
     /// <summary>
     /// A fluent introspector interface
     /// </summary>
-    public interface IFluent : IMap, IIntrospect
+    public interface IFluent : IIntrospect
     {
+        /// <summary>
+        /// Get the current map
+        /// </summary>
+        IMap Map { get; }
+
         /// <summary>
         /// Use a fallback introspector
         /// </summary>
@@ -40,8 +45,13 @@ namespace Bede.Thallium.Introspection
     /// A fluent introspector interface for an API type
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IFluent<T> : IMap, IBack<IFluent>
+    public interface IFluent<T> : IBack<IFluent>
     {
+        /// <summary>
+        /// Get the current map
+        /// </summary>
+        IMap Map { get; }
+
         /// <summary>
         /// Add a description for the given expression
         /// </summary>
@@ -61,6 +71,8 @@ namespace Bede.Thallium.Introspection
         {
             _maps = new Dictionary<Type, IMap>();
         }
+
+        public IMap Map => this;
 
         public IFluent Fallback(IIntrospect introspector)
         {
@@ -109,6 +121,8 @@ namespace Bede.Thallium.Introspection
         {
             _back = back;
         }
+
+        public IMap Map => this;
 
         public IFluent<T> With(MethodInfo method, Description description)
         {

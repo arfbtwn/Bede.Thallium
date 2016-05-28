@@ -106,6 +106,11 @@ namespace Bede.Thallium.Introspection
                     case ExpressionType.Call:
                         __((MethodCallExpression) e);
                         break;
+                    case ExpressionType.Convert:
+                        __(((UnaryExpression) e).Operand);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -153,16 +158,19 @@ namespace Bede.Thallium.Introspection
                         cd.SetFileName = string.IsNullOrWhiteSpace(fd.FileName);
                         break;
                     case "FormUrl":
-                        __(e.Arguments.FirstOrDefault() as MethodCallExpression);
+                        __(e.Arguments.FirstOrDefault());
                         cd = _d.Body.Lookup(_p);
 
                         cd.Type = "application/x-www-form-urlencoded";
                         break;
                     case "Octet":
-                        __(e.Arguments.FirstOrDefault() as MethodCallExpression);
+                        __(e.Arguments.FirstOrDefault());
                         cd = _d.Body.Lookup(_p);
 
                         cd.Type = "application/octet-stream";
+                        break;
+                    case "Done":
+                        __(e.Arguments.FirstOrDefault());
                         break;
                 }
             }
