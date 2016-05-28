@@ -14,9 +14,9 @@ namespace Bede.Thallium.Introspection
         /// </remarks>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T Uri<T>()
+        public static P<T> Uri<T>()
         {
-            return default(T);
+            return new P<T>();
         }
 
         /// <summary>
@@ -36,9 +36,9 @@ namespace Bede.Thallium.Introspection
         /// <param name="type"></param>
         /// <param name="disposition"></param>
         /// <returns></returns>
-        public static T Body<T>(string type, string disposition)
+        public static P<T> Body<T>(string type, string disposition)
         {
-            return default(T);
+            return new P<T>();
         }
 
         /// <summary>
@@ -46,9 +46,9 @@ namespace Bede.Thallium.Introspection
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T FormUrl<T>()
+        public static P<T> FormUrl<T>()
         {
-            return default(T);
+            return new P<T>();
         }
 
         /// <summary>
@@ -57,9 +57,9 @@ namespace Bede.Thallium.Introspection
         /// <typeparam name="T"></typeparam>
         /// <param name="form"></param>
         /// <returns></returns>
-        public static T FormUrl<T>(this T form)
+        public static P<T> FormUrl<T>(this P<T> form)
         {
-            return default(T);
+            return form;
         }
 
         /// <summary>
@@ -67,9 +67,9 @@ namespace Bede.Thallium.Introspection
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T Octet<T>()
+        public static P<T> Octet<T>()
         {
-            return default(T);
+            return new P<T>();
         }
 
         /// <summary>
@@ -77,9 +77,9 @@ namespace Bede.Thallium.Introspection
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T Octet<T>(this T form)
+        public static P<T> Octet<T>(this P<T> form)
         {
-            return default(T);
+            return form;
         }
 
         /// <summary>
@@ -88,7 +88,28 @@ namespace Bede.Thallium.Introspection
         /// <typeparam name="T"></typeparam>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static T Form<T>(params string[] args)
+        public static P<T> Form<T>(params string[] args)
+        {
+            return new P<T>();
+        }
+
+        /// <summary>
+        /// For explicit conversion of the generic parameter type
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static T Done<T>(this P<T> p)
+        {
+            return p;
+        }
+    }
+
+#pragma warning disable 1591
+
+    public class P<T>
+    {
+        public static implicit operator T(P<T> p)
         {
             return default(T);
         }

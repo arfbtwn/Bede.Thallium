@@ -91,7 +91,7 @@ namespace Bede.Thallium
         internal IImp Imp = new Imp();
 
         internal Type Build<TBase, T>(IIntrospect introspector)
-            where TBase : RestClient
+            where TBase : BaseClient
         {
             var parent = typeof(TBase);
             var target = typeof(T);
@@ -101,17 +101,26 @@ namespace Bede.Thallium
 
         internal Type Build(Type parent, Type target, IIntrospect introspector)
         {
-            Assertion.IsClass("parent", parent);
-            Assertion.IsNotAbstract("parent", parent);
+            Assertion.IsNotNull("parent", parent);
+            Assertion.IsNotNull("target", target);
 
-            var ident = Tuple.Create(target, parent);
+            var ident = Tuple.Create(parent, target);
 
             if (Built.ContainsKey(ident))
             {
                 return Built[ident];
             }
 
+            Assertion.IsNotNull("introspector", introspector);
+
+            Assertion.IsClass("parent", parent);
+            Assertion.IsNotAbstract("parent", parent);
+            Assertion.ExtendsBaseClient("parent", parent);
+            Assertion.IsNotSealed("parent", parent);
             Assertion.IsInterface("target", target);
+
+            Assertion.IsAccessible("target", target);
+            Assertion.IsAccessible("parent", parent);
 
             var methods = target.GetMethods()
                                 .Union(target.GetInterfaces().SelectMany(i => i.GetMethods()))

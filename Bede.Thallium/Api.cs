@@ -10,7 +10,6 @@ namespace Bede.Thallium
     using Content;
 
     using Handler    = HttpMessageHandler;
-    using Formatter  = MediaTypeFormatter;
     using Formatters = MediaTypeFormatterCollection;
 
     using Call = Tuple<
@@ -51,7 +50,7 @@ namespace Bede.Thallium
     }
 
     /// <summary>
-    /// A static access point to the client factory
+    /// A static access point to the runtime client factory
     /// </summary>
     public static class Api
     {
@@ -95,9 +94,9 @@ namespace Bede.Thallium
         /// <param name="introspector"></param>
         /// <returns></returns>
         [Obsolete]
-        public static Type Emit(Type type, Type parent = null, Introspector introspector = null)
+        public static Type Emit(Type type, Type parent, Introspector introspector)
         {
-            return Factory.Build(parent ?? typeof(RestClient), type, _up(introspector));
+            return Factory.Build(parent, type, _up(introspector));
         }
 
         /// <summary>
@@ -107,9 +106,9 @@ namespace Bede.Thallium
         /// <param name="parent"></param>
         /// <param name="introspector"></param>
         /// <returns></returns>
-        public static Type Emit(Type type, Type parent = null, IIntrospect introspector = null)
+        public static Type Emit(Type type, Type parent, IIntrospect introspector = null)
         {
-            return Factory.Build(parent ?? typeof(RestClient), type, introspector ?? new Simple());
+            return Factory.Build(parent, type, introspector ?? new Simple());
         }
 
         /// <summary>
@@ -118,10 +117,10 @@ namespace Bede.Thallium
         /// <typeparam name="T"></typeparam>
         /// <param name="introspector"></param>
         /// <returns></returns>
-        [Obsolete]
-        public static Type Emit<T>(Introspector introspector = null)
+        [Obsolete("Use Api<T> instead")]
+        public static Type Emit<T>(Introspector introspector)
         {
-            return Emit(typeof(T), introspector: introspector);
+            return Emit(typeof(T), typeof(RestClient), introspector);
         }
 
         /// <summary>
@@ -130,9 +129,10 @@ namespace Bede.Thallium
         /// <typeparam name="T"></typeparam>
         /// <param name="introspector"></param>
         /// <returns></returns>
+        [Obsolete("Use Api<T> instead")]
         public static Type Emit<T>(IIntrospect introspector = null)
         {
-            return Emit(typeof(T), introspector: introspector);
+            return Emit(typeof(T), typeof(RestClient), introspector);
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace Bede.Thallium
         /// <returns></returns>
         public static object New(Type type, Type parent, params object[] args)
         {
-            return _new(Emit(type, parent, (IIntrospect) null), args);
+            return _new(Emit(type, parent), args);
         }
 
         /// <summary>
@@ -153,9 +153,10 @@ namespace Bede.Thallium
         /// <param name="type"></param>
         /// <param name="args"></param>
         /// <returns></returns>
+        [Obsolete("Use Api<T> instead")]
         public static object New(Type type, params object[] args)
         {
-            return New(type, null, args);
+            return New(type, typeof(RestClient), args);
         }
 
         /// <summary>
@@ -164,6 +165,7 @@ namespace Bede.Thallium
         /// <param name="type"></param>
         /// <param name="uri"></param>
         /// <returns></returns>
+        [Obsolete("Use Api<T> instead")]
         public static object New(Type type, Uri uri)
         {
             return New(type, new object[] { uri });
@@ -175,6 +177,7 @@ namespace Bede.Thallium
         /// <typeparam name="T"></typeparam>
         /// <param name="args"></param>
         /// <returns></returns>
+        [Obsolete("Use Api<T> instead")]
         public static T New<T>(params object[] args)
         {
             return (T) New(typeof(T), args);
@@ -182,10 +185,15 @@ namespace Bede.Thallium
     }
 
 #pragma warning disable 1591
-    public static class Api<TBase, T> where TBase : RestClient
+    /// <summary>
+    /// A static factory using a custom base class
+    /// </summary>
+    /// <typeparam name="TBase"></typeparam>
+    /// <typeparam name="T"></typeparam>
+    public static class Api<TBase, T> where TBase : BaseClient
     {
         [Obsolete]
-        public static Type Emit(Introspector introspector = null)
+        public static Type Emit(Introspector introspector)
         {
             return Api.Emit(typeof(T), typeof(TBase), introspector);
         }
@@ -201,10 +209,16 @@ namespace Bede.Thallium
         }
     }
 
+    /// <summary>
+    /// A static factory using <see cref="RestClient" /> as
+    /// its base class and exposing appropriate construction
+    /// signatures
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public static class Api<T>
     {
         [Obsolete]
-        public static Type Emit(Introspector introspector = null)
+        public static Type Emit(Introspector introspector)
         {
             return Api<RestClient, T>.Emit(introspector);
         }
@@ -214,9 +228,30 @@ namespace Bede.Thallium
             return Api<RestClient, T>.Emit(introspector);
         }
 
+        [Obsolete("Use a more specific overload")]
         public static T New(params object[] args)
         {
             return Api<RestClient, T>.New(args);
+        }
+
+        public static T New(Uri uri)
+        {
+            return Api<RestClient, T>.New(uri);
+        }
+
+        public static T New(Uri uri, Handler handler)
+        {
+            return Api<RestClient, T>.New(uri, handler);
+        }
+
+        public static T New(Uri uri, Formatters formatters)
+        {
+            return Api<RestClient, T>.New(uri, formatters);
+        }
+
+        public static T New(Uri uri, Handler handler, Formatters formatters)
+        {
+            return Api<RestClient, T>.New(uri, handler, formatters);
         }
     }
 }
