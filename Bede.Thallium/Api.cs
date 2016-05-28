@@ -4,6 +4,7 @@ using System.Reflection;
 namespace Bede.Thallium
 {
     using Introspection;
+    using Clients;
     using Content;
 
     /// <summary>
@@ -18,43 +19,6 @@ namespace Bede.Thallium
         /// <param name="method"></param>
         /// <returns></returns>
         Description Call(Type parent, MethodInfo method);
-    }
-
-    /// <summary>
-    /// An interface for a type that emits client types
-    /// using the specified introspector
-    /// </summary>
-    public interface IApi
-    {
-        /// <summary>
-        /// Use the specified introspector for API call description
-        /// </summary>
-        /// <param name="introspector"></param>
-        /// <returns></returns>
-        IApi Using(IIntrospect introspector);
-
-        /// <summary>
-        /// Emit a type implementing the given interface
-        /// </summary>
-        /// <param name="interface"></param>
-        /// <returns></returns>
-        Type Emit(Type @interface);
-    }
-
-    /// <summary>
-    /// A generic version of <see cref="IApi" /> used to
-    /// encode the type of the base client
-    /// </summary>
-    /// <typeparam name="TBase"></typeparam>
-    public interface IApi<TBase> : IApi
-    {
-        /// <summary>
-        /// Hide the base class <see cref="IApi.Using(IIntrospect)" />
-        /// method
-        /// </summary>
-        /// <param name="introspector"></param>
-        /// <returns></returns>
-        new IApi<TBase> Using(IIntrospect introspector);
     }
 
     /// <summary>
@@ -78,18 +42,27 @@ namespace Bede.Thallium
         /// </summary>
         /// <typeparam name="TBase"></typeparam>
         /// <returns></returns>
-        public static IApi<TBase> Client<TBase>() where TBase : BaseClient
+        public static IApi<TBase> On<TBase>() where TBase : BaseClient
         {
             return new _Api<TBase>(Factory);
         }
 
         /// <summary>
-        /// Get a client emitter based on <see cref="Thallium.RestClient" />
+        /// Get a client emitter based on <see cref="RestClient" />
         /// </summary>
         /// <returns></returns>
-        public static IApi<RestClient> RestClient()
+        public static IApi<RestClient> Rest()
         {
-            return Client<RestClient>();
+            return On<RestClient>();
+        }
+
+        /// <summary>
+        /// Get a client emitter based on <see cref="DynamicClient" />
+        /// </summary>
+        /// <returns></returns>
+        public static IApi<DynamicClient> Dynamic()
+        {
+            return On<DynamicClient>();
         }
 
         /// <summary>

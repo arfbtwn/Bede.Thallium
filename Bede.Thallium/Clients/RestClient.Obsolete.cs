@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 
-namespace Bede.Thallium
+namespace Bede.Thallium.Clients
 {
     partial class RestClient
     {

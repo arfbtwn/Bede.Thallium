@@ -8,6 +8,7 @@ using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
 {
+    using Clients;
     using Thallium.Introspection;
 
     using Dict = IDictionary<string, object>;
@@ -20,7 +21,7 @@ namespace Bede.Thallium.UnitTests
         {
             var sut = Api.Fluent().Api<IBar>().Call(x => x.Ping()).Get("ping").Back().Back();
 
-            var api = Api.RestClient().Using(sut).Emit<IBar>();
+            var api = Api.Rest().Using(sut).Emit<IBar>();
 
             Assert.IsNotNull(api);
         }
@@ -51,9 +52,7 @@ namespace Bede.Thallium.UnitTests
 
             sut.Include(sut2.Map);
 
-            var rc = Api.RestClient()
-                        .Using(sut)
-                        .New<IFluentFoo>(new Uri("http://ew1-dv01-484-ilb.ad.bedegaming.com:3638/api/"));
+            var rc = Api.Rest().Using(sut).New<IFluentFoo>(new Uri("http://localhost.:80/api/"));
 
             var bc = (RestClient) rc;
             bc.Head["X-Correlation-Token"] = "foo";

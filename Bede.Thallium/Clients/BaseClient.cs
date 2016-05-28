@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace Bede.Thallium
+namespace Bede.Thallium.Clients
 {
     using Belt;
     using Content;
