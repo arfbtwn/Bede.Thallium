@@ -7,6 +7,7 @@ using System.Reflection;
 
 namespace Bede.Thallium
 {
+    using Clients;
     using Introspection;
 
     using Call = Tuple<

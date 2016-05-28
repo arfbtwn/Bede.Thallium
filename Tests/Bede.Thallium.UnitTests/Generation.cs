@@ -8,6 +8,7 @@ using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
 {
+    using Clients;
     using Thallium.Introspection;
 
     [TestFixture]
@@ -21,10 +22,18 @@ namespace Bede.Thallium.UnitTests
             Api.New<IFoo>("http://localhost.:80");
 
             Api<TestClient, ICrudApi<Ping>>.New("http://localhost.:80");
-            Api<IFoo>.New("http://ew1-dv01-484-ilb.ad.bedegaming.com:3638");
+            Api<IFoo>.New("http://localhost.:80");
 
-            Api.Client<TestClient>().New<ICrudApi<Ping>>("http://localhost.:80");
+            Api.On<TestClient>().New<ICrudApi<Ping>>("http://localhost.:80");
 #pragma warning restore 612, 618
+        }
+
+        [Test]
+        public void Extension()
+        {
+            var type = Api.On<TestClient>().Emit<IFoo>();
+
+            Assert.IsNotNull(type);
         }
 
         [Test]
@@ -34,9 +43,9 @@ namespace Bede.Thallium.UnitTests
 
             fluent.Api<IBar>().Get("ping").Method(x => x.Ping());
 
-            var sut = Api.RestClient().Using(fluent);
+            var sut = Api.Rest().Using(fluent);
 
-            var bar = sut.New<IBar>(new Uri("http://localhost"));
+            var bar = sut.New<IBar>(new Uri("http://localhost.:80"));
 
             var result = bar.Ping().Result;
 
@@ -46,7 +55,7 @@ namespace Bede.Thallium.UnitTests
         [Test]
         public void CrudClientGen()
         {
-            var sut = Api.RestClient().New<ICrudApi<Ping>>(new Uri("http://localhost.:80"));
+            var sut = Api.Rest().New<ICrudApi<Ping>>(new Uri("http://localhost.:80"));
 
             Assert.IsNotNull(sut);
 
@@ -57,9 +66,9 @@ namespace Bede.Thallium.UnitTests
         [Test]
         public void RestClientGen()
         {
-            var sut = Api.RestClient().New<IFoo>(new Uri("http://ew1-dv01-484-ilb.ad.bedegaming.com:3638"));
+            var sut = Api.Rest().New<IFoo>(new Uri("http://localhost.:80"));
 
-            var rc = sut as TestClient;
+            var rc = sut as RestClient;
 
             Assert.IsNotNull(rc);
 
@@ -79,6 +88,14 @@ namespace Bede.Thallium.UnitTests
             var fs = File.OpenRead("..\\..\\app.config");
 
             sut.DeleteSession(new [] { "123", "mySession" }, "arfbtwn", dict, dict, fs).Wait();
+        }
+
+        [Test]
+        public void DynamicClientGen()
+        {
+            var sut = Api.Dynamic().New<IFoo>(new FixedConfig("http://localhost.:80"));
+
+            Assert.IsNotNull(sut);
         }
     }
 

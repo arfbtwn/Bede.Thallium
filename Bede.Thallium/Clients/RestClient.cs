@@ -2,7 +2,7 @@
 using System.Net.Http;
 using System.Net.Http.Formatting;
 
-namespace Bede.Thallium
+namespace Bede.Thallium.Clients
 {
     using Handlers;
 

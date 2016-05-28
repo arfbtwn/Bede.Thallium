@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace Bede.Thallium
 {
+    using Clients;
+
     static class Assertion
     {
         internal static void IsNotNull(string parameterName, object obj)
