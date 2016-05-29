@@ -8,13 +8,45 @@ using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
 {
+    using Thallium.Introspection;
+
     [TestFixture]
     class Generation
     {
+        public void ObsoleteSyntax()
+        {
+#pragma warning disable 612, 618
+            Api.Emit(typeof(IFoo));
+            Api.Emit(typeof(IFoo), typeof(RestClient));
+            Api.New<IFoo>("http://localhost.:80");
+
+            Api<TestClient, ICrudApi<Ping>>.New("http://localhost.:80");
+            Api<IFoo>.New("http://ew1-dv01-484-ilb.ad.bedegaming.com:3638");
+
+            Api.Client<TestClient>().New<ICrudApi<Ping>>("http://localhost.:80");
+#pragma warning restore 612, 618
+        }
+
+        [Test]
+        public void Builder()
+        {
+            var fluent = Api.Fluent().Fallback<Simple>();
+
+            fluent.Api<IBar>().Get("ping").Method(x => x.Ping());
+
+            var sut = Api.RestClient().Using(fluent);
+
+            var bar = sut.New<IBar>(new Uri("http://localhost"));
+
+            var result = bar.Ping().Result;
+
+            Assert.IsNotNull(result);
+        }
+
         [Test]
         public void CrudClientGen()
         {
-            var sut = Api<TestClient, ICrudApi<Ping>>.New(new Uri("http://localhost.:80"));
+            var sut = Api.RestClient().New<ICrudApi<Ping>>(new Uri("http://localhost.:80"));
 
             Assert.IsNotNull(sut);
 
@@ -25,7 +57,7 @@ namespace Bede.Thallium.UnitTests
         [Test]
         public void RestClientGen()
         {
-            var sut = Api<TestClient, IFoo>.New(new Uri("http://ew1-dv01-484-ilb.ad.bedegaming.com:3638"));
+            var sut = Api.RestClient().New<IFoo>(new Uri("http://ew1-dv01-484-ilb.ad.bedegaming.com:3638"));
 
             var rc = sut as TestClient;
 

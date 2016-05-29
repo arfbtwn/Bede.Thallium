@@ -109,7 +109,7 @@ namespace Bede.Thallium.Introspection
             Reduce();
 
             Description o;
-            return TryGetValue(method, out o) ? o : _default.Call(parent, method);
+            return TryGetValue(method, out o) ? o : _default?.Call(parent, method);
         }
     }
 

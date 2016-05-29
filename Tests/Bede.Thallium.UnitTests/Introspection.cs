@@ -20,7 +20,7 @@ namespace Bede.Thallium.UnitTests
         {
             var sut = Api.Fluent().Api<IBar>().Call(x => x.Ping()).Get("ping").Back().Back();
 
-            var api = Api<IBar>.Emit(sut);
+            var api = Api.RestClient().Using(sut).Emit<IBar>();
 
             Assert.IsNotNull(api);
         }
@@ -51,9 +51,9 @@ namespace Bede.Thallium.UnitTests
 
             sut.Include(sut2.Map);
 
-            Api<IFluentFoo>.Emit(sut);
-
-            var rc = Api<IFluentFoo>.New(new Uri("http://ew1-dv01-484-ilb.ad.bedegaming.com:3638/api/"));
+            var rc = Api.RestClient()
+                        .Using(sut)
+                        .New<IFluentFoo>(new Uri("http://ew1-dv01-484-ilb.ad.bedegaming.com:3638/api/"));
 
             var bc = (RestClient) rc;
             bc.Head["X-Correlation-Token"] = "foo";

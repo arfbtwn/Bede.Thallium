@@ -57,7 +57,11 @@
     <Compile Include="Belt\ReflectionExtensions.cs" />
     <Compile Include="Belt\Builder.cs" />
     <Compile Include="Api.cs" />
+    <Compile Include="Api.Obsolete.cs">
+      <DependentUpon>Api.cs</DependentUpon>
+    </Compile>
     <Compile Include="BaseClient.cs" />
+    <Compile Include="_Api.cs" />
     <Compile Include="Content\ContentBuilder.cs" />
     <Compile Include="Content\ContentBuilderExtensions.cs" />
     <Compile Include="Content\IImp.cs" />
