@@ -21,7 +21,7 @@ public interface IPing
     [Get("ping")] Task<Ping> Ping();
 }
 
-var sut = Api<IPing>.New(new Uri("http://localhost/api"));
+var sut = Api.RestClient().New<IPing>(new Uri("http://localhost/api"));
 
 try
 {
@@ -42,7 +42,7 @@ public interface IPingHeader
     [Get("ping")] Task<Ping> Ping([Header("myRequestHeader")] string head);
 }
 
-var sut = Api<IPingHeader>.New(new Uri("http://localhost/api"));
+var sut = Api.RestClient().New<IPingHeader>(new Uri("http://localhost/api"));
 
 var rc = (RestClient) sut;
 
@@ -113,7 +113,7 @@ public interface ICrudApi<T>
     [Delete("{id}")] Task    Delete(long id);
 }
 
-var sut = Api<ICrudApi<MyClass>>(new Uri("http://localhost/api"));
+var sut = Api.RestClient().New<ICrudApi<MyClass>>(new Uri("http://localhost/api"));
 
 var myClass = await sut.Read(1);
 ```
@@ -164,9 +164,9 @@ sut.Api<IMultipartApi>()
                            P.Form<Dict>("second", "theFile"),
                            P.Form<FileStream>().Octet()));
 
-Api<IFluentApi>.Emit(sut);
-
-var client = Api<IFluentApi>.New(new Uri("http://localhost/api"));
+var client = Api.RestClient()
+                .Using(sut)
+                .New<IFluentApi>(new Uri("http://localhost/api"));
 ```
 
 #### Extensibility
@@ -200,7 +200,7 @@ public class TestClient : RestClient
 
 HttpResponseMessage msg = null;
 
-var sut = Api<TestClient, IPing>.New(new Uri("http://localhost/api"));
+var sut = Api.Client<TestClient>().New<IPing>(new Uri("http://localhost/api"));
 
 var tc = (TestClient) sut;
 
