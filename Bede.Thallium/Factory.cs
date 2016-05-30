@@ -13,8 +13,11 @@ namespace Bede.Thallium
     using Clients;
     using Content;
 
-    using Ident  = Tuple<Type, Type>;
-    using Params = Dictionary<string, object>;
+    using Ident   = Tuple<Type, Type>;
+    using Params  = Dictionary<string, object>;
+    using Static  = Dictionary<string, string[]>;
+    using Headers = Dictionary<ParameterInfo, string>;
+    using Body    = Dictionary<ParameterInfo, ContentDescription>;
 
     class Factory
     {
@@ -112,23 +115,33 @@ namespace Bede.Thallium
                 return Built[ident];
             }
 
-            Assertion.IsNotNull("introspector", introspector);
+            Assertion.IsNotNull        ("introspector", introspector);
+            Assertion.IsAccessible     ("parent",       parent);
+            Assertion.IsAccessible     ("target",       target);
 
-            Assertion.IsClass("parent", parent);
-            Assertion.IsNotAbstract("parent", parent);
-            Assertion.ExtendsBaseClient("parent", parent);
-            Assertion.IsNotSealed("parent", parent);
-            Assertion.IsInterface("target", target);
-
-            Assertion.IsAccessible("target", target);
-            Assertion.IsAccessible("parent", parent);
+            Assertion.IsClass          ("parent",       parent);
+            Assertion.IsNotAbstract    ("parent",       parent);
+            Assertion.ExtendsBaseClient("parent",       parent);
+            Assertion.IsNotSealed      ("parent",       parent);
+            Assertion.IsInterface      ("target",       target);
 
             var methods = target.GetMethods()
                                 .Union(target.GetInterfaces().SelectMany(i => i.GetMethods()))
                                 .Where(ReflectionExtensions.IsMethod)
-                                .ToArray();
+                                .ToDictionary(x => x, x => introspector.Call(target, x));
 
-            Assertion.AllAsyncMethods("target", methods);
+            foreach (var kv in methods)
+            {
+                var method = kv.Key;
+                var call   = kv.Value;
+
+                call.Headers = call.Headers ?? new Headers();
+                call.Body    = call.Body    ?? new Body();
+                call.Static  = call.Static  ?? new Static();
+
+                Assertion.IsAsync(method);
+                Assertion.HasValidDescription(method, call);
+            }
 
             var targetName = MakeName(parent, target);
 
@@ -137,9 +150,9 @@ namespace Bede.Thallium
                                        parent:     parent,
                                        interfaces: new [] { target });
 
-            foreach (var method in methods)
+            foreach (var method in methods.Keys)
             {
-                var call = introspector.Call(target, method);
+                var call = methods[method];
 
                 var args = method.GetParameters();
 
@@ -172,7 +185,7 @@ namespace Bede.Thallium
                 }
                 ilG.Emit(OpCodes.Ldstr, call.Verb.Method);
                 ilG.Emit(OpCodes.Newobj, ctHM);
-                ilG.Emit(OpCodes.Ldstr, call.Template);
+                ilG.EmitString(call.Template);
 
                 var dict = typeof(Params);
                 var ctor = dict.GetConstructor(EmpT);
@@ -198,7 +211,7 @@ namespace Bede.Thallium
                 ilG.Emit(OpCodes.Newobj, ctor);
 
                 // Pack static headers, but ignore the ones we would replace
-                foreach (var head in call.Static ?? new Dictionary<string, string[]>())
+                foreach (var head in call.Static)
                 {
                     ilG.Emit(OpCodes.Dup);
                     ilG.Emit(OpCodes.Ldstr, head.Key);

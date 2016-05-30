@@ -85,19 +85,12 @@ namespace Bede.Thallium.Introspection
             }
         }
 
-        void inv()
-        {
-            Assertion.HasVerbAttribute(Verb, _i);
-        }
-
 #pragma warning disable 612
         public Descriptor V1()
         {
-            inv();
-
             return new Descriptor
             {
-                Verb     = Verb.Verb,
+                Verb     = Verb?.Verb,
                 Template = string.Join("/", Route).TrimStart('/'),
                 Body     = Body.First(),
                 Headers  = Headers.ToDictionary(x => x, HeaderName),
@@ -109,11 +102,9 @@ namespace Bede.Thallium.Introspection
 
         public Description V2()
         {
-            inv();
-
             return new Description
             {
-                Verb     = Verb.Verb,
+                Verb     = Verb?.Verb,
                 Template = string.Join("/", Route).TrimStart('/'),
                 Body     = Body.ToDictionary(x => x, ContentInfo),
                 Subtype  = Subtype(),

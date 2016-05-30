@@ -31,7 +31,7 @@ namespace Bede.Thallium
         {
             if (!typeof(BaseClient).IsAssignableFrom(type))
             {
-                throw new ArgumentException(type.Name + " doesn't have a BaseClient ancestor", parameterName);
+                throw new ArgumentException(type.Name + " doesn't have a " + nameof(BaseClient) + " ancestor", parameterName);
             }
         }
 
@@ -50,17 +50,12 @@ namespace Bede.Thallium
             if (!type.IsInterface) throw new ArgumentException(type.Name + " is not an interface", parameterName);
         }
 
-        internal static void AllAsyncMethods(string parameterName, MethodInfo[] methods)
+        internal static void IsAsync(MethodInfo method)
         {
-            if (!methods.All(x => typeof(Task).IsAssignableFrom(x.ReturnType)))
+            if (!typeof(Task).IsAssignableFrom(method.ReturnType))
             {
-                throw new ArgumentException("All methods must return Tasks", parameterName);
+                throw new InvalidOperationException(method.Name + " does not return a Task");
             }
-        }
-
-        internal static void HasVerbAttribute(VerbAttribute verb, MethodInfo i)
-        {
-            if (null == verb) throw new InvalidOperationException("No verb attribute: " + i.Name);
         }
 
         internal static void HasFormatter(MediaTypeFormatter formatter, Type type, MediaTypeHeaderValue header)
@@ -72,6 +67,19 @@ namespace Bede.Thallium
             if (null != header) str.Append(" as ").Append(header.MediaType);
 
             throw new InvalidOperationException(str.ToString());
+        }
+
+        internal static void HasValidDescription(MethodInfo method, Description call)
+        {
+            if (null == call)
+            {
+                var name = method.Name;
+                var type = method.DeclaringType.Name;
+
+                throw new InvalidOperationException(name + " on " + type + " has no call information");
+            }
+
+            if (null == call.Verb) throw new InvalidOperationException("No HTTP verb: " + method.Name);
         }
     }
 }
