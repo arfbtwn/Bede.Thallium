@@ -61,6 +61,8 @@
     <Compile Include="Api.Obsolete.cs">
       <DependentUpon>Api.cs</DependentUpon>
     </Compile>
+    <Compile Include="Handlers\HandlerBuilder.cs" />
+    <Compile Include="Handlers\RecordingHandler.cs" />
     <Compile Include="IApi.cs" />
     <Compile Include="Clients\BaseClient.cs" />
     <Compile Include="Clients\Configuration.cs" />
