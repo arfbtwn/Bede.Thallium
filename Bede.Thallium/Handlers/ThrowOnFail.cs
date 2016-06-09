@@ -18,8 +18,12 @@ namespace Bede.Thallium.Handlers
     /// and a set of keys inserted into its data collection defined by
     /// <see cref="ExceptionKeys"/>
     /// </remarks>
-    public sealed class ThrowOnFail : HttpClientHandler
+    public sealed class ThrowOnFail : DelegatingHandler
     {
+        public ThrowOnFail() : this(new HttpClientHandler()) { }
+
+        public ThrowOnFail(HttpMessageHandler inner) : base(inner) { }
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var msg = await base.SendAsync(request, cancellationToken).Caf();
