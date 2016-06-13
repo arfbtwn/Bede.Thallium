@@ -4,11 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Polly;
 using Polly.CircuitBreaker;
-using Polly.Retry;
 
 #pragma warning disable 1591
 
-namespace Bede.Thallium.Handlers
+namespace Bede.Thallium.Polly
 {
     public class PolicyHandler : DelegatingHandler
     {

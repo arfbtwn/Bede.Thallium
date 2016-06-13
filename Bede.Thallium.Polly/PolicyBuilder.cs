@@ -3,7 +3,7 @@ using System.Net.Http;
 
 #pragma warning disable 1591
 
-namespace Bede.Thallium.Handlers
+namespace Bede.Thallium.Polly
 {
     using Handler = HttpMessageHandler;
     using Backoff = Func<int, TimeSpan>;

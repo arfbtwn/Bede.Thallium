@@ -34,10 +34,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Polly, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Polly.4.0.0\lib\net45\Polly.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -81,8 +77,6 @@
     <Compile Include="Factory.cs" />
     <Compile Include="Descriptor.cs" />
     <Compile Include="FormUrlEncoder.cs" />
-    <Compile Include="Handlers\PolicyBuilder.cs" />
-    <Compile Include="Handlers\PolicyHandler.cs" />
     <Compile Include="Handlers\ThrowOnFail.cs" />
     <Compile Include="I.cs" />
     <Compile Include="Attributes.cs" />
@@ -100,7 +94,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Bede.Thallium.nuspec" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
