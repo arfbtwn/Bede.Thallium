@@ -15,8 +15,7 @@ namespace Bede.Thallium.Clients
     {
         protected DefaultConfig()
         {
-            Handler = new ThrowOnFail().RetryOnServerError()
-                                       .RetryOnUnknown();
+            Handler = new ThrowOnFail();
 
             Formatters = new Formatters { new FormUrlEncoder() };
         }
