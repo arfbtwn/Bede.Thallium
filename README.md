@@ -169,6 +169,34 @@ var client = Api.Rest()
                 .New<IFluentApi>(new Uri("http://localhost/api"));
 ```
 
+#### Handlers
+
+The default HTTP message handler is called `ThrowOnFail` and its functionality is augmented by some other types
+that are constructed with extension methods:
+
+```C#
+var sut = new ThrowOnFail().RetryOnServerError()
+                           .BreakOnClientError();
+```
+
+#### Using a Dependency Inversion Container
+
+Thallium is friendly to dependency inversion containers and provides an `Emit` method for creating dynamic
+types and registering them in the container. Using [Autofac](https://github.com/autofac/Autofac) as an example:
+
+```C#
+var sut = new ContainerBuilder();
+
+sut.RegisterType(Api.Rest().Emit<T>())
+   .WithParameter("uri",     new Uri("http://localhost/"))
+   .WithParameter("handler", new ThrowOnFail())
+   .AsImplementedInterfaces();
+
+var container = sut.Build();
+
+var api = container.Resolve<T>();
+```
+
 #### Extensibility
 
 ##### Subclassing
