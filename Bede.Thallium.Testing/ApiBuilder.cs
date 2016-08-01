@@ -25,7 +25,7 @@ namespace Bede.Thallium.Testing
     /// Concrete API builder implementation
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class ApiBuilder<T> : IApiBuilder<T> where T : class
+    public class ApiBuilder<T> : Builder<T>, IApiBuilder<T> where T : class
     {
         readonly Mock<T> _mock = new Mock<T>();
 
@@ -44,7 +44,7 @@ namespace Bede.Thallium.Testing
             return new TaskBuilder<T, IApiBuilder<T>>(this, _mock, op);
         }
 
-        public T Build()
+        public override T Build()
         {
             return _mock.Object;
         }
@@ -82,7 +82,7 @@ namespace Bede.Thallium.Testing
         ITaskBuilder<T, TResult, TBack> Define(HttpStatusCode code, TResult result = default(TResult));
     }
 
-    class CaseBuilder<T, TResult, TBack> : ICaseBuilder<T, TResult, TBack>
+    class CaseBuilder<T, TResult, TBack> : Builder<T>, ICaseBuilder<T, TResult, TBack>
         where T     : class
         where TBack : IBuilder<T>
     {
@@ -104,7 +104,7 @@ namespace Bede.Thallium.Testing
             return this;
         }
 
-        public T Build()
+        public override T Build()
         {
             return _back.Build();
         }

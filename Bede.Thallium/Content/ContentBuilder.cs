@@ -10,6 +10,8 @@ using System.Net.Http.Headers;
 
 namespace Bede.Thallium.Content
 {
+    using Belt;
+
     public class ContentBuilder : List<HttpContent>, IContentBuilder
     {
         readonly MediaTypeFormatterCollection _formatters;
@@ -22,6 +24,13 @@ namespace Bede.Thallium.Content
         }
 
         public ContentBuilder() : this(new MediaTypeFormatterCollection()) { }
+
+        public Type Type => typeof(HttpContent);
+
+        object IBuilder.Build()
+        {
+            return Build();
+        }
 
         public HttpContent Last()
         {

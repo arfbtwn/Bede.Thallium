@@ -75,7 +75,7 @@ namespace Bede.Thallium.Testing
     /// Concrete multi-case API builder implementation
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Apis<T> : IApis<T> where T : class
+    public class Apis<T> : Builder<IApis<T>>, IApis<T> where T : class
     {
         readonly IApiBuilder<T> _good, _bad, _ugly;
 
@@ -108,7 +108,7 @@ namespace Bede.Thallium.Testing
             return new TaskApis<T, TResult, IApis<T>>(this, good, bad, ugly);
         }
 
-        public IApis<T> Build()
+        public override IApis<T> Build()
         {
             Good = _good.Build();
             Bad  = _bad. Build();
@@ -118,7 +118,7 @@ namespace Bede.Thallium.Testing
         }
     }
 
-    class Apis<T, TResult, TBack> : IBuilder<IApis<T>>, IBack<TBack>
+    class Apis<T, TResult, TBack> : Builder<IApis<T>>, IBuilder<IApis<T>>, IBack<TBack>
         where T     : class
         where TBack : IBuilder<IApis<T>>
     {
@@ -154,7 +154,7 @@ namespace Bede.Thallium.Testing
             return this;
         }
 
-        public IApis<T> Build()
+        public override IApis<T> Build()
         {
             return _back.Build();
         }
