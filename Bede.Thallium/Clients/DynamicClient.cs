@@ -28,6 +28,5 @@ namespace Bede.Thallium.Clients
         public    override Uri        Uri        => _config.Uri;
         protected override Handler    Handler    => _config.Handler;
         protected override Formatters Formatters => _config.Formatters;
-        protected override HttpClient Client()   => new HttpClient(Handler, false);
     }
 }
