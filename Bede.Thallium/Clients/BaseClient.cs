@@ -19,7 +19,7 @@ namespace Bede.Thallium.Clients
     /// <summary>
     /// Basic client functionality
     /// </summary>
-    public abstract class BaseClient
+    public abstract class BaseClient : IDisposable
     {
         /// <summary>
         /// The default set of media type formatters
@@ -30,6 +30,59 @@ namespace Bede.Thallium.Clients
         {
             Default = new Formatters { new FormUrlEncoder() };
         }
+
+        readonly Lazy<HttpClient> _client;
+
+        /// <summary>
+        /// Default construction
+        /// </summary>
+        protected BaseClient()
+        {
+            _client = new Lazy<HttpClient>(Client);
+        }
+
+        #region Disposable
+
+        /// <summary>
+        /// Destructor
+        /// </summary>
+        ~BaseClient()
+        {
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// Release the <see cref="HttpClient" />
+        /// </summary>
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        /// <summary>
+        /// Release the <see cref="HttpClient" />
+        /// </summary>
+        void IDisposable.Dispose()
+        {
+            Dispose();
+        }
+
+        /// <summary>
+        /// Release the <see cref="HttpClient" />
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing) return;
+
+            if (_client.IsValueCreated)
+            {
+                _client.Value.Dispose();
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// The URI used by the client
@@ -68,12 +121,9 @@ namespace Bede.Thallium.Clients
         /// <param name="message"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage message, Token? token = null)
+        public virtual Task<HttpResponseMessage> SendAsync(HttpRequestMessage message, Token? token = null)
         {
-            using (var client = Client())
-            {
-                return await client.SendAsync(message, token ?? Token.None).Caf();
-            }
+            return _client.Value.SendAsync(message, token ?? Token.None);
         }
 
         /// <summary>

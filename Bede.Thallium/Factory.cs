@@ -92,6 +92,12 @@ namespace Bede.Thallium
             return parent.Namespace + "." + crete + parent.Name;
         }
 
+        static IEnumerable<MethodInfo> Methods(Type root)
+        {
+            return root.GetMethods()
+                       .Union(root.GetInterfaces().SelectMany(Methods));
+        }
+
         internal IImp Imp = new Imp();
 
         internal Type Build<TBase, T>(IIntrospect introspector)
@@ -125,10 +131,10 @@ namespace Bede.Thallium
             Assertion.IsNotSealed      ("parent",       parent);
             Assertion.IsInterface      ("target",       target);
 
-            var methods = target.GetMethods()
-                                .Union(target.GetInterfaces().SelectMany(i => i.GetMethods()))
-                                .Where(ReflectionExtensions.IsMethod)
-                                .ToDictionary(x => x, x => introspector.Call(target, x));
+            var all     = Methods(target).Where(ReflectionExtensions.IsMethod);
+            var ignored = Methods(parent).Where(ReflectionExtensions.IsMethod);
+
+            var methods = all.Except(ignored).ToDictionary(x => x, x => introspector.Call(target, x));
 
             foreach (var kv in methods)
             {

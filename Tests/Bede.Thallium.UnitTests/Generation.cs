@@ -28,6 +28,14 @@ namespace Bede.Thallium.UnitTests
 #pragma warning restore 612, 618
         }
 
+        public void Syntax()
+        {
+            var uri = new Uri("http://localhost.80");
+
+            using (Api.Rest().New<IBar>(uri)) { }
+            using (Api.Rest().New<IFoo>(uri)) { }
+        }
+
         [Test]
         public void Extension()
         {
@@ -111,7 +119,7 @@ namespace Bede.Thallium.UnitTests
         public string Version        { get; set; }
     }
 
-    public interface IBar
+    public interface IBar : IDisposable
     {
         [Get("ping")]
         Task<Ping> Ping();

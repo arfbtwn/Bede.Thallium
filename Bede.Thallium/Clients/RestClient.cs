@@ -56,8 +56,6 @@ namespace Bede.Thallium.Clients
         public    override Uri        Uri        { get; }
         protected override Handler    Handler    { get; }
         protected override Formatters Formatters { get; }
-
-        protected override HttpClient Client() => new HttpClient(Handler, false);
 #pragma warning restore 1591
     }
 }
