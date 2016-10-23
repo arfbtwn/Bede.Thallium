@@ -21,14 +21,11 @@ namespace Bede.Thallium.Clients
     /// </summary>
     public abstract class BaseClient : IDisposable
     {
-        /// <summary>
-        /// The default set of media type formatters
-        /// </summary>
-        protected static readonly Formatters Default;
-
-        static BaseClient()
+        static class Default
         {
-            Default = new Formatters { new FormUrlEncoder() };
+            internal static Handler    Handler    => new ThrowOnFail();
+            internal static Formatters Formatters => new Formatters { new FormUrlEncoder() };
+            internal static TimeSpan   Timeout    => TimeSpan.FromMinutes(2);
         }
 
         readonly Lazy<HttpClient> _client;
@@ -38,7 +35,7 @@ namespace Bede.Thallium.Clients
         /// </summary>
         protected BaseClient()
         {
-            _client = new Lazy<HttpClient>(Client);
+            _client = new Lazy<HttpClient>(Client, LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         #region Disposable
@@ -97,23 +94,31 @@ namespace Bede.Thallium.Clients
         /// <summary>
         /// The collection of formatters for deserializing responses
         /// </summary>
-        protected virtual Formatters Formatters { get; } = Default;
+        protected virtual Formatters Formatters => null;
 
         /// <summary>
         /// Gets a message handler
         /// </summary>
-        protected virtual Handler Handler => new ThrowOnFail();
+        protected virtual Handler Handler => null;
+
+        /// <summary>
+        /// Gets the timeout used in <see cref="HttpClient" /> construction
+        /// </summary>
+        public virtual TimeSpan? Timeout => null;
 
         /// <summary>
         /// Gets a content builder
         /// </summary>
-        protected virtual IContentBuilder ContentBuilder() => new ContentBuilder(Formatters);
+        protected virtual IContentBuilder ContentBuilder() => new ContentBuilder(Formatters ?? Default.Formatters);
 
         /// <summary>
         /// Gets a client
         /// </summary>
         /// <returns></returns>
-        protected virtual HttpClient Client() => new HttpClient(Handler, true);
+        protected virtual HttpClient Client() => new HttpClient(Handler ?? Default.Handler, true)
+                                                 {
+                                                     Timeout = Timeout ?? Default.Timeout
+                                                 };
 
         /// <summary>
         /// Internal send method, included for flexibility
@@ -296,7 +301,7 @@ namespace Bede.Thallium.Clients
         /// <returns></returns>
         protected virtual Task<T> Success<T>(HttpResponseMessage msg)
         {
-            return msg.Content.ReadAsAsync<T>(Formatters);
+            return msg.Content.ReadAsAsync<T>(Formatters ?? Default.Formatters);
         }
 
         /// <summary>

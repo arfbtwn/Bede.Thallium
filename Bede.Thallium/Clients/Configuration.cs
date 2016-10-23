@@ -24,6 +24,7 @@ namespace Bede.Thallium.Clients
 
         public Handler    Handler    { get; set; }
         public Formatters Formatters { get; set; }
+        public TimeSpan?  Timeout    { get; set; }
 
         public void Dispose()
         {
