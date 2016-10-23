@@ -103,17 +103,19 @@ namespace Bede.Thallium
 #pragma warning disable 618
         public static T New<T>(this IApi<RestClient> emitter, Uri        uri,
                                                               Handler    handler    = null,
-                                                              Formatters formatters = null)
+                                                              Formatters formatters = null,
+                                                              TimeSpan?  timeout    = null)
         {
-            return emitter.New<T>(new object[] { uri, handler, formatters });
+            return emitter.New<T>(new object[] { uri, handler, formatters, timeout });
         }
 
         public static RestClient New(this IApi<RestClient> emitter, Type       @interface,
                                                                     Uri         uri,
                                                                     Handler     handler    = null,
-                                                                    Formatters  formatters = null)
+                                                                    Formatters  formatters = null,
+                                                                    TimeSpan?   timeout    = null)
         {
-            return emitter.New(@interface, new object[] { uri, handler, formatters });
+            return emitter.New(@interface, new object[] { uri, handler, formatters, timeout });
         }
 
         public static T New<T>(this IApi<DynamicClient> emitter, IClientConfig config)

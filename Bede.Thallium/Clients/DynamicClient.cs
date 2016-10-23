@@ -14,6 +14,7 @@ namespace Bede.Thallium.Clients
         Uri        Uri        { get; }
         Handler    Handler    { get; }
         Formatters Formatters { get; }
+        TimeSpan?  Timeout    { get; }
     }
 
     public class DynamicClient : BaseClient
@@ -25,8 +26,9 @@ namespace Bede.Thallium.Clients
             _config = config;
         }
 
-        public    override Uri        Uri        => _config.Uri;
-        protected override Handler    Handler    => _config.Handler;
-        protected override Formatters Formatters => _config.Formatters;
+        public    sealed override Uri        Uri        => _config.Uri;
+        protected sealed override Handler    Handler    => _config.Handler;
+        protected sealed override Formatters Formatters => _config.Formatters;
+        public    sealed override TimeSpan?  Timeout    => _config.Timeout;
     }
 }

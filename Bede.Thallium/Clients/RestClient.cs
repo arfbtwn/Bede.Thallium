@@ -4,8 +4,6 @@ using System.Net.Http.Formatting;
 
 namespace Bede.Thallium.Clients
 {
-    using Handlers;
-
     using Handler    = HttpMessageHandler;
     using Formatters = MediaTypeFormatterCollection;
 
@@ -44,18 +42,32 @@ namespace Bede.Thallium.Clients
         /// <param name="handler"></param>
         /// <param name="formatters"></param>
         public RestClient(Uri uri, Handler handler, Formatters formatters)
+            : this(uri, handler, formatters, null)
+        {
+        }
+
+        /// <summary>
+        /// Custom construction
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="handler"></param>
+        /// <param name="formatters"></param>
+        /// <param name="timeout"></param>
+        public RestClient(Uri uri, Handler handler, Formatters formatters, TimeSpan? timeout)
         {
             if (null == uri) throw new ArgumentNullException(nameof(uri));
 
             Uri        = uri;
-            Handler    = handler    ?? new ThrowOnFail();
-            Formatters = formatters ?? Default;
+            Handler    = handler;
+            Formatters = formatters;
+            Timeout    = timeout;
         }
 
 #pragma warning disable 1591
-        public    override Uri        Uri        { get; }
-        protected override Handler    Handler    { get; }
-        protected override Formatters Formatters { get; }
+        public    sealed override Uri        Uri        { get; }
+        protected sealed override Handler    Handler    { get; }
+        protected sealed override Formatters Formatters { get; }
+        public    sealed override TimeSpan?  Timeout    { get; }
 #pragma warning restore 1591
     }
 }
