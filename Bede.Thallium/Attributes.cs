@@ -37,10 +37,10 @@ namespace Bede.Thallium
     {
         public HttpMethod Verb { get; private set; }
 
-        public VerbAttribute(HttpMethod verb, string route)
+        public VerbAttribute(string verb, string route)
             : base(route)
         {
-            Verb = verb;
+            Verb = new HttpMethod(verb);
         }
 
         protected VerbAttribute(string route)
