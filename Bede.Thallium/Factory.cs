@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -13,21 +14,28 @@ namespace Bede.Thallium
     using Clients;
     using Content;
 
-    using Ident   = Tuple<Type, Type>;
     using Params  = Dictionary<string, object>;
+    using TypeMap = ConcurrentDictionary<Ident, Type>;
     using Static  = Dictionary<string, string[]>;
     using Headers = Dictionary<ParameterInfo, string>;
     using Body    = Dictionary<ParameterInfo, ContentDescription>;
 
+    class Ident : Tuple<Type, Type>
+    {
+        Ident(Type item1, Type item2) : base(item1, item2) { }
+
+        internal static Ident Create(Type parent, Type target) => new Ident(parent, target);
+    }
+
     class Factory
     {
-        static readonly Type[]                  EmpT     = Type.EmptyTypes;
+        static readonly Type[]              EmpT     = Type.EmptyTypes;
 
-        static readonly Lazy<ModuleBuilder>     Builder  = new Lazy<ModuleBuilder>(ConstructBuilder);
+        static readonly Lazy<ModuleBuilder> Builder  = new Lazy<ModuleBuilder>(ConstructBuilder);
 
-        static readonly Dictionary<Ident, Type> Built    = new Dictionary<Ident, Type>();
+        static readonly TypeMap             Built    = new TypeMap();
 
-        static readonly AssemblyName            Assembly = new AssemblyName("RestClients");
+        static readonly AssemblyName        Assembly = new AssemblyName("RestClients");
 
         static ModuleBuilder ModB
         {
@@ -114,12 +122,15 @@ namespace Bede.Thallium
             Assertion.IsNotNull("parent", parent);
             Assertion.IsNotNull("target", target);
 
-            var ident = Tuple.Create(parent, target);
+            var ident = Ident.Create(parent, target);
 
-            if (Built.ContainsKey(ident))
-            {
-                return Built[ident];
-            }
+            return Built.GetOrAdd(ident, i => Build(i, introspector));
+        }
+
+        Type Build(Ident ident, IIntrospect introspector)
+        {
+            var parent = ident.Item1;
+            var target = ident.Item2;
 
             Assertion.IsNotNull        ("introspector", introspector);
             Assertion.IsAccessible     ("parent",       parent);
@@ -318,7 +329,7 @@ namespace Bede.Thallium
                 ilG.Emit(OpCodes.Ret);
             }
 
-            return Built[ident] = typB.CreateType();
+            return typB.CreateType();
         }
     }
 }
