@@ -57,6 +57,8 @@
     <Compile Include="Api.Obsolete.cs">
       <DependentUpon>Api.cs</DependentUpon>
     </Compile>
+    <Compile Include="Data\Boolean.cs" />
+    <Compile Include="Data\DateTime.cs" />
     <Compile Include="Handlers\HandlerBuilder.cs" />
     <Compile Include="Handlers\RecordingHandler.cs" />
     <Compile Include="Auth\Authenticators.cs" />
