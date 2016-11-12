@@ -91,7 +91,7 @@
     <Compile Include="Introspection\Fluent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rfc2616.cs" />
-    <Compile Include="Rfc6750.cs" />
+    <Compile Include="Rfc6570.cs" />
     <Compile Include="ExceptionKeys.cs" />
   </ItemGroup>
   <ItemGroup>

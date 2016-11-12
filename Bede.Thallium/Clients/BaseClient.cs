@@ -241,7 +241,7 @@ namespace Bede.Thallium.Clients
         /// <returns></returns>
         protected virtual string Template(string path, Params parameters)
         {
-            return new Rfc6750().Expand(path, parameters);
+            return new Rfc6570().Expand(path, parameters);
         }
 
         /// <summary>
