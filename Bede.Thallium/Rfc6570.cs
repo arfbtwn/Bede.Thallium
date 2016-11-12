@@ -11,7 +11,7 @@ namespace Bede.Thallium
     using Param  = KeyValuePair<string, object>;
     using Params = Dictionary  <string, object>;
 
-    class Rfc6750
+    class Rfc6570
     {
         protected readonly StringBuilder Builder  = new StringBuilder();
         protected readonly StringBuilder Variable = new StringBuilder();

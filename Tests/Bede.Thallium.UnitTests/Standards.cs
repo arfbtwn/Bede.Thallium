@@ -131,7 +131,7 @@ namespace Bede.Thallium.UnitTests
         [TestCase("{&keys*}"           ,"&semi=%3B&dot=.&comma=%2C")]
         public void TemplateHandling(string template, string expected)
         {
-            var sut = new Rfc6750();
+            var sut = new Rfc6570();
 
             var res = sut.Expand(template, Params);
 
