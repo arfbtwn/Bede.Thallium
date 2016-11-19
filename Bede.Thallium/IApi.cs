@@ -127,6 +127,16 @@ namespace Bede.Thallium
         {
             return emitter.New(@interface, new object[] { config });
         }
+
+        public static T New<T>(this IApi<DelegatingClient> emitter, IDelegatingConfig config)
+        {
+            return emitter.New<T>(new object[] { config });
+        }
+
+        public static DelegatingClient New(this IApi<DelegatingClient> emitter, Type @interface, IDelegatingConfig config)
+        {
+            return emitter.New(@interface, new object[] { config });
+        }
 #pragma warning restore 618
     }
 #pragma warning restore 1591

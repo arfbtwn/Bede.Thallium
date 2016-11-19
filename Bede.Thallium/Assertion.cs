@@ -27,11 +27,11 @@ namespace Bede.Thallium
             if (type.IsAbstract) throw new ArgumentException(type.Name + " is abstract", parameterName);
         }
 
-        internal static void ExtendsBaseClient(string parameterName, Type type)
+        internal static void ExtendsSkeleton(string parameterName, Type type)
         {
-            if (!typeof(BaseClient).IsAssignableFrom(type))
+            if (!typeof(SkeletonClient).IsAssignableFrom(type))
             {
-                throw new ArgumentException(type.Name + " doesn't have a " + nameof(BaseClient) + " ancestor", parameterName);
+                throw new ArgumentException(type.Name + " doesn't have a " + nameof(SkeletonClient) + " ancestor", parameterName);
             }
         }
 

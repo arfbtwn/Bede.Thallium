@@ -152,7 +152,7 @@ namespace Bede.Thallium
     /// <typeparam name="TBase"></typeparam>
     /// <typeparam name="T"></typeparam>
     [Obsolete("Use Api.Client<T>() instead")]
-    public static class Api<TBase, T> where TBase : BaseClient
+    public static class Api<TBase, T> where TBase : SkeletonClient
     {
         public static Type Emit(Introspector introspector)
         {
