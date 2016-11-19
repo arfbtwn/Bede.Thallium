@@ -2,7 +2,6 @@ using System;
 using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Formatting;
-using Bede.Thallium.Handlers;
 
 #pragma warning disable 1591
 
@@ -13,13 +12,6 @@ namespace Bede.Thallium.Clients
 
     public abstract class DefaultConfig : IClientConfig, IDisposable
     {
-        protected DefaultConfig()
-        {
-            Handler = new ThrowOnFail();
-
-            Formatters = new Formatters { new FormUrlEncoder() };
-        }
-
         public abstract Uri Uri { get; }
 
         public Handler    Handler    { get; set; }
@@ -33,7 +25,7 @@ namespace Bede.Thallium.Clients
         }
     }
 
-    public sealed class DynamicConfig : DefaultConfig
+    public class DynamicConfig : DefaultConfig
     {
         readonly Func<Uri> _uri;
 
@@ -42,10 +34,10 @@ namespace Bede.Thallium.Clients
             _uri = uri;
         }
 
-        public override Uri Uri => _uri();
+        public sealed override Uri Uri => _uri();
     }
 
-    public sealed class FixedConfig : DefaultConfig
+    public class FixedConfig : DefaultConfig
     {
         public FixedConfig(Uri uri)
         {
@@ -54,7 +46,7 @@ namespace Bede.Thallium.Clients
 
         public FixedConfig(string uri) : this(new Uri(uri)) { }
 
-        public override Uri Uri { get; }
+        public sealed override Uri Uri { get; }
 
         public static FixedConfig FromAppSetting(string key)
         {

@@ -42,7 +42,7 @@ namespace Bede.Thallium
         /// </summary>
         /// <typeparam name="TBase"></typeparam>
         /// <returns></returns>
-        public static IApi<TBase> On<TBase>() where TBase : BaseClient
+        public static IApi<TBase> On<TBase>() where TBase : SkeletonClient
         {
             return new _Api<TBase>(Factory);
         }

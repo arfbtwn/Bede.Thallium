@@ -109,7 +109,7 @@ namespace Bede.Thallium
         internal IImp Imp = new Imp();
 
         internal Type Build<TBase, T>(IIntrospect introspector)
-            where TBase : BaseClient
+            where TBase : SkeletonClient
         {
             var parent = typeof(TBase);
             var target = typeof(T);
@@ -132,15 +132,15 @@ namespace Bede.Thallium
             var parent = ident.Item1;
             var target = ident.Item2;
 
-            Assertion.IsNotNull        ("introspector", introspector);
-            Assertion.IsAccessible     ("parent",       parent);
-            Assertion.IsAccessible     ("target",       target);
+            Assertion.IsNotNull      ("introspector", introspector);
+            Assertion.IsAccessible   ("parent",       parent);
+            Assertion.IsAccessible   ("target",       target);
 
-            Assertion.IsClass          ("parent",       parent);
-            Assertion.IsNotAbstract    ("parent",       parent);
-            Assertion.ExtendsBaseClient("parent",       parent);
-            Assertion.IsNotSealed      ("parent",       parent);
-            Assertion.IsInterface      ("target",       target);
+            Assertion.IsClass        ("parent",       parent);
+            Assertion.IsNotAbstract  ("parent",       parent);
+            Assertion.ExtendsSkeleton("parent",       parent);
+            Assertion.IsNotSealed    ("parent",       parent);
+            Assertion.IsInterface    ("target",       target);
 
             var all     = Methods(target).Where(ReflectionExtensions.IsMethod);
             var ignored = Methods(parent).Where(ReflectionExtensions.IsMethod);
@@ -271,7 +271,7 @@ namespace Bede.Thallium
                 {
                     var imp = Imp;
 
-                    var ctb = typeof(BaseClient).GetMethod("ContentBuilder", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var ctb = typeof(SkeletonClient).GetMethod("ContentBuilder", BindingFlags.NonPublic | BindingFlags.Instance);
                     ilG.Emit(OpCodes.Ldarg_0);
                     ilG.Emit(OpCodes.Callvirt, ctb);
 
