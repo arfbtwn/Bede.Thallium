@@ -1,7 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 #pragma warning disable 1591
-namespace Bede.Thallium
+namespace Bede.Thallium.Formatting
 {
     using Belt;
 

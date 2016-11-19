@@ -9,17 +9,24 @@ namespace Bede.Thallium.Clients
 {
     using Belt;
     using Content;
+    using Formatting;
     using Handlers;
 
     using Params     = Dictionary<string, object>;
     using Handler    = HttpMessageHandler;
+    using Formatter  = MediaTypeFormatter;
     using Formatters = MediaTypeFormatterCollection;
     using Token      = CancellationToken;
 
     static class Default
     {
         internal static Handler    Handler    => new ThrowOnFail();
-        internal static Formatters Formatters => new Formatters { new FormUrlEncoder() };
+        internal static Formatters Formatters => new Formatters(new Formatter[0])
+                                                 {
+                                                    new NewtonsoftJsonFormatter(),
+                                                    new XmlMediaTypeFormatter(),
+                                                    new FormUrlEncoder()
+                                                 };
         internal static TimeSpan   Timeout    => TimeSpan.FromMinutes(2);
     }
 
