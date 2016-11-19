@@ -3,6 +3,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Polly;
 
+#pragma warning disable 1591
+
 namespace Bede.Thallium.Polly
 {
     public sealed class RetryArgs : EventArgs
