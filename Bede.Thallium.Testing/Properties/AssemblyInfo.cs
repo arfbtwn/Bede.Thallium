@@ -4,3 +4,4 @@
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Bede.Thallium.Testing")]
+[assembly: AssemblyDescription("Setup shorthand and mock factories for Thallium APIs")]

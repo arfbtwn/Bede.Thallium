@@ -77,11 +77,25 @@ namespace Bede.Thallium.Polly
             return CircuitBreak<HttpRequestException>(@this, IsClient, limit, rest);
         }
 
-        public static ResponseHandler On(this ResponseHandler responseHandler, params HttpStatusCode[] codes)
+        /// <summary>
+        /// Configures a <see cref="ResponseHandler"/> to respond to any of the specified status codes
+        /// </summary>
+        /// <param name="handler"></param>
+        /// <param name="codes"></param>
+        /// <returns></returns>
+        public static ResponseHandler On(this ResponseHandler handler, params HttpStatusCode[] codes)
         {
-            return responseHandler.On(x => codes.Contains(x.StatusCode));
+            return handler.On(x => codes.Contains(x.StatusCode));
         }
 
+        /// <summary>
+        /// Wrap this handler in <see cref="RetryHandler"/> behaviour
+        /// </summary>
+        /// <param name="first">The handler to wrap</param>
+        /// <param name="count">The number of retries</param>
+        /// <param name="backoff">A function providing delay <see cref="TimeSpan"/>s</param>
+        /// <param name="setup">A setup function to execute on the new handler</param>
+        /// <returns></returns>
         public static RetryHandler Retry(this Handler first,
                                               int?    count   = null,
                                               Backoff backoff = null,
@@ -92,6 +106,14 @@ namespace Bede.Thallium.Polly
             return _;
         }
 
+        /// <summary>
+        /// Wrap this handler in <see cref="CircuitBreakHandler"/> behaviour
+        /// </summary>
+        /// <param name="first">The handler to wrap</param>
+        /// <param name="limit">The number of matched requests before breaking</param>
+        /// <param name="rest">The rest period for each circuit break</param>
+        /// <param name="setup">A setup function to execute on the new handler</param>
+        /// <returns></returns>
         public static CircuitBreakHandler Break(this Handler   first,
                                                      int?      limit = null,
                                                      TimeSpan? rest  = null,

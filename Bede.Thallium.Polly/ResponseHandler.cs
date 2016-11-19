@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Polly;
 
+#pragma warning disable 1591
+
 namespace Bede.Thallium.Polly
 {
     using Predicate = Func<HttpResponseMessage, bool>;

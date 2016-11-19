@@ -3,6 +3,8 @@ using System.Net.Http;
 using Polly;
 using Polly.CircuitBreaker;
 
+#pragma warning disable 1591
+
 namespace Bede.Thallium.Polly
 {
     public sealed class BrokenArgs : EventArgs
