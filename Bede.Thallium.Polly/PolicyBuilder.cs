@@ -82,14 +82,24 @@ namespace Bede.Thallium.Polly
             return responseHandler.On(x => codes.Contains(x.StatusCode));
         }
 
-        public static RetryHandler Retry(this Handler first, int? count = null, Backoff backoff = null)
+        public static RetryHandler Retry(this Handler first,
+                                              int?    count   = null,
+                                              Backoff backoff = null,
+                                              Action<RetryHandler> setup = null)
         {
-            return new RetryHandler(first, count ?? Three, backoff ?? Exponential);
+            var _ = new RetryHandler(first, count ?? Three, backoff ?? Exponential);
+            setup?.Invoke(_);
+            return _;
         }
 
-        public static CircuitBreakHandler Break(this Handler first, int? limit = null, TimeSpan? rest = null)
+        public static CircuitBreakHandler Break(this Handler   first,
+                                                     int?      limit = null,
+                                                     TimeSpan? rest  = null,
+                                                     Action<CircuitBreakHandler> setup = null)
         {
-            return new CircuitBreakHandler(first, limit ?? Five, rest ?? OneMinute);
+            var _ = new CircuitBreakHandler(first, limit ?? Five, rest ?? OneMinute);
+            setup?.Invoke(_);
+            return _;
         }
     }
 }

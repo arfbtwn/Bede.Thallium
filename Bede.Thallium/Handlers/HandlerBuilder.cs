@@ -17,9 +17,11 @@ namespace Bede.Thallium.Handlers
             return @this;
         }
 
-        public static RecordingHandler Record(this HttpMessageHandler @this)
+        public static RecordingHandler Record(this HttpMessageHandler @this, Action<RecordingHandler> setup = null)
         {
-            return new RecordingHandler(@this);
+            var _ = new RecordingHandler(@this);
+            setup?.Invoke(_);
+            return _;
         }
 
         public static RecordingHandler Record(this RecordingHandler @this)
@@ -27,6 +29,7 @@ namespace Bede.Thallium.Handlers
             return @this;
         }
 
+        [Obsolete]
         public static RecordingHandler OnRequest(this RecordingHandler @this, EventHandler<HttpRequestMessage> handler)
         {
             @this.Request += handler;
@@ -34,6 +37,7 @@ namespace Bede.Thallium.Handlers
             return @this;
         }
 
+        [Obsolete]
         public static RecordingHandler OnResponse(this RecordingHandler @this, EventHandler<HttpResponseMessage> handler)
         {
             @this.Response += handler;
