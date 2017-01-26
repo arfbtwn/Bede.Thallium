@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection;
@@ -12,6 +13,13 @@ namespace Bede.Thallium.Introspection
 
     public class AttributeInspection
     {
+        readonly static bool TrimLeadingSlashes;
+
+        static AttributeInspection()
+        {
+            bool.TryParse(ConfigurationManager.AppSettings["Bede.Thallium.Attribute.Route.TrimLeadingSlashes"], out TrimLeadingSlashes);
+        }
+
         readonly Type       _p;
         readonly MethodInfo _i;
 
@@ -91,7 +99,7 @@ namespace Bede.Thallium.Introspection
             return new Descriptor
             {
                 Verb     = Verb?.Verb,
-                Template = string.Join("/", Route).TrimStart('/'),
+                Template = _Route(),
                 Body     = Body.First(),
                 Headers  = Headers.ToDictionary(x => x, HeaderName),
                 Static   = Static.ToLookup(x => x.Name, x => x.Value)
@@ -105,7 +113,7 @@ namespace Bede.Thallium.Introspection
             return new Description
             {
                 Verb     = Verb?.Verb,
-                Template = string.Join("/", Route).TrimStart('/'),
+                Template = _Route(),
                 Body     = Body.ToDictionary(x => x, ContentInfo),
                 Subtype  = Subtype(),
                 Boundary = Boundary(),
@@ -113,6 +121,12 @@ namespace Bede.Thallium.Introspection
                 Static   = Static.ToLookup(x => x.Name, x => x.Value)
                                  .ToDictionary(x => x.Key, group => group.ToArray())
             };
+        }
+
+        string _Route()
+        {
+            var route = string.Join("/", Route);
+            return TrimLeadingSlashes ? route.TrimStart('/') : route;
         }
 
         protected virtual string Subtype()
