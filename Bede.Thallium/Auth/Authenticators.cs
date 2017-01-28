@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 #pragma warning disable 1591
@@ -62,7 +61,7 @@ namespace Bede.Thallium.Auth
             set
             {
                 _token = value;
-                _next = DateTime.UtcNow + TimeSpan.FromSeconds(_token.expires_in);
+                _next = DateTime.UtcNow + TimeSpan.FromSeconds(_token.expires_in ?? 0);
             }
         }
 

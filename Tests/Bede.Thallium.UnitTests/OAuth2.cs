@@ -1,5 +1,6 @@
 using System;
 using Bede.Thallium.Auth;
+using Bede.Thallium.Clients;
 using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
@@ -9,7 +10,25 @@ namespace Bede.Thallium.UnitTests
     {
         static IOAuth2 Sut()
         {
-            return Api.Rest().New<IOAuth2>(new Uri("http://ew1-dv01-501-ilb.ad.bedegaming.com:8888/core/"));
+            var client = Api.Rest().New<IOAuth2>(new Uri("http://ew1-dv01-501-ilb.ad.bedegaming.com:8888/core/"));
+
+            var rc = (RestClient) client;
+
+            rc.Head["X-Correlation-Token"] = Guid.NewGuid().ToString();
+
+            return client;
+        }
+
+        [Test]
+        public void OpenId()
+        {
+            var sut = Sut();
+
+            var conf = sut.OpenId().Result;
+
+            Assert.IsNotNull(conf);
+            Assert.IsNotEmpty(conf.scopes_supported);
+            Assert.IsNotEmpty(conf.grant_types_supported);
         }
 
         [Test]
@@ -24,6 +43,22 @@ namespace Bede.Thallium.UnitTests
         }
 
         [Test]
+        public void HeaderCredentials()
+        {
+            var sut = Sut();
+
+            var req = new Client
+            {
+                Scope = { "sitecode" }
+            };
+
+            var tok = sut.Auth(req, "test_client_credentials:secret").Result;
+
+            Assert.IsNotNull(tok);
+            Assert.IsNotEmpty(tok.access_token);
+        }
+
+        [Test]
         public void ClientCredentials()
         {
             var sut = Sut();
@@ -33,7 +68,7 @@ namespace Bede.Thallium.UnitTests
                 Client = "test_client_credentials",
                 Secret = "secret",
 
-                Scopes = new [] { "sitecode" }
+                Scope  = { "sitecode" }
             };
 
             var tok = sut.Auth(req).Result;
@@ -54,7 +89,7 @@ namespace Bede.Thallium.UnitTests
                 Username = "aladin",
                 Password = "open sesame",
 
-                Scopes   = new [] { "sitecode" }
+                Scope    = { "sitecode" }
             };
 
             var tok = sut.Auth(req).Result;
@@ -75,7 +110,7 @@ namespace Bede.Thallium.UnitTests
                 Username = "aladin",
                 Password = "open sesame",
 
-                Scopes   = new [] { "sitecode", "offline_access" }
+                Scope    = { "sitecode", "offline_access" }
             };
 
             var t1 = sut.Auth(r1).Result;

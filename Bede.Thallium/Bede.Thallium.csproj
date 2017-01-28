@@ -64,6 +64,10 @@
     <Compile Include="Api.Obsolete.cs">
       <DependentUpon>Api.cs</DependentUpon>
     </Compile>
+    <Compile Include="Auth\Header.cs" />
+    <Compile Include="Auth\Basic.cs" />
+    <Compile Include="Auth\Bearer.cs" />
+    <Compile Include="Data\Base64.cs" />
     <Compile Include="Data\Boolean.cs" />
     <Compile Include="Clients\DelegatingClient.cs" />
     <Compile Include="Clients\BaseClient.cs" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using Moq;
 using NUnit.Framework;
@@ -19,36 +18,35 @@ namespace Bede.Thallium.UnitTests
             var sut = new OAuth();
 
             Assert.IsEmpty(sut);
-            Assert.IsNull(sut.GrantType);
+            Assert.IsNull(sut.Grant);
             Assert.IsNull(sut.Client);
             Assert.IsNull(sut.Secret);
-            Assert.IsNull(sut.Scopes);
-            Assert.IsNull(sut.AcrValues);
+            Assert.IsEmpty(sut.Scope);
+            Assert.IsEmpty(sut.Acr);
 
             var grant  = "mygrant";
             var client = "myclient";
             var secret = "mysecret";
-            var scopes = new [] { "scope1",   "scope2"   };
+            var scope  = new [] { "scope1",   "scope2"   };
             var acr    = new [] { "acr1:foo", "acr2:bar" };
 
             sut = new OAuth
             {
-                GrantType = grant,
-                Client    = client,
-                Secret    = secret,
-                Scopes    = scopes,
-                AcrValues = acr
+                Grant  = grant,
+                Client = client,
+                Secret = secret,
+                Scope  = scope,
+                Acr    = acr
             };
 
-            Assert.AreEqual(5,      sut.Count);
-            Assert.AreEqual(grant,  sut.GrantType);
+            Assert.AreEqual(grant,  sut.Grant);
             Assert.AreEqual(client, sut.Client);
             Assert.AreEqual(secret, sut.Secret);
-            Assert.AreEqual(scopes, sut.Scopes);
-            Assert.AreEqual(acr,    sut.AcrValues);
+            Assert.AreEqual(scope,  sut.Scope);
+            Assert.AreEqual(acr,    sut.Acr);
 
-            Assert.AreNotSame(scopes, sut.Scopes);
-            Assert.AreNotSame(acr,    sut.AcrValues);
+            Assert.AreNotSame(scope, sut.Scope);
+            Assert.AreNotSame(acr,   sut.Acr);
         }
 
         [Test]
@@ -69,16 +67,11 @@ namespace Bede.Thallium.UnitTests
         [Test]
         public void Call()
         {
-            _oauth.Setup       (x => x.Auth(It.IsAny<OAuth>()))
+            _oauth.Setup       (x => x.Auth(It.IsAny<OAuth>(), It.IsAny<Basic>()))
                   .ReturnsAsync(default(Token))
                   .Verifiable();
 
             var sut = _oauth.Object.Tracker<OAuth>();
-
-            sut.Request.GrantType = "client_credentials";
-            sut.Request.Client    = "myclient";
-            sut.Request.Secret    = "secret";
-            sut.Request.Scopes    = new [] { "scope1" };
 
             sut.Auth().Wait();
 
