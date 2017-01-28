@@ -1,79 +1,73 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Bede.Thallium.Handlers;
 using Bede.Thallium.Polly;
+using Moq;
+using Moq.Protected;
 using NUnit.Framework;
-using Polly.CircuitBreaker;
 
 namespace Bede.Thallium.UnitTests
 {
-    sealed class AlwaysThrow<E> : HttpMessageHandler where E : Exception, new()
-    {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            throw new E();
-        }
-    }
-
     [TestFixture]
     class Handlers
     {
         HttpRequestMessage m => new HttpRequestMessage(HttpMethod.Get, new Uri("http://localhost"));
 
         [Test]
-        public void Building()
+        public void Syntax()
         {
-            var r = new AlwaysThrow<Exception>().RetryOnUnknown(1);
+            const int tries = 1, limit = 2;
 
-            Exception rex = null, bex = null;
+            var ms50 = TimeSpan.FromMilliseconds(50);
 
-            r.Retry += (o, x) => { rex = x.Last; Console.WriteLine(x.Last.Message); Console.WriteLine("Next retry: " + x.Wait); };
+            var count  = 0;
+            var broken = false;
 
-            var b = r.BreakOnUnknown(1);
+            var mock = new Mock<HttpMessageHandler>();
 
-            b.Broken   += (o, x) => { bex = x.Last; Console.WriteLine(x.Last.Message); Console.WriteLine("Unbroken in: " + x.Wait); };
-            b.Reset    += (o, x) => { };
-            b.HalfOpen += (o, x) => { };
+            mock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError)))
+                .Callback(() => ++count);
 
-            var c = new HttpClient(b);
+            var sut = mock.Object
+                .Record(rec =>
+                {
+                    rec.Request  += (o, x) => { };
+                    rec.Response += (o, x) => { };
+                })
+                .Retry(tries, i => ms50, ret =>
+                {
+                    ret.Retry += (o, x) => { };
+                })
+                .On(x => x.StatusCode.IsServerError())
+                .Break(limit, ms50, brk =>
+                {
+                    brk.Broken   += (o, x) => { broken = true; };
+                    brk.Reset    += (o, x) => { };
+                    brk.HalfOpen += (o, x) => { };
 
-            try
+                    Assert.IsTrue (brk.IsClosed);
+                    Assert.IsFalse(brk.IsOpen);
+                })
+                .On(x => x.StatusCode.IsServerError())
+                .ThrowOnFail();
+
+            Assert.IsNotNull(sut);
+
+            using (var client = new HttpClient(sut))
             {
-                c.SendAsync(m).GetAwaiter().GetResult();
-
-                Assert.Fail();
+                for (var i = 0; i < limit + 1; ++i)
+                {
+                    Assert.Throws<HttpRequestException>(async () => await client.SendAsync(m));
+                }
             }
-            catch (Exception) { }
 
-            Assert.IsNotNull(rex);
-
-            try
-            {
-                c.SendAsync(m).GetAwaiter().GetResult();
-
-                Assert.Fail();
-            }
-            catch (BrokenCircuitException) { }
-
-            Assert.IsNotNull(bex);
-
-            Assert.IsTrue(b.IsOpen);
-            b.Close();
-
-            Assert.IsTrue(b.IsClosed);
-            b.Open();
-
-            try
-            {
-                c.SendAsync(m).GetAwaiter().GetResult();
-
-                Assert.Fail();
-            }
-            catch (IsolatedCircuitException) { }
-
-            Assert.IsTrue(b.IsIsolated);
-            b.Close();
+            Assert.AreEqual((tries + 1) * limit, count);
+            Assert.IsTrue(broken);
         }
     }
 }

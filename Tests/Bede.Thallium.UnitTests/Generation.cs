@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web.Http;
 using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
@@ -11,28 +11,61 @@ namespace Bede.Thallium.UnitTests
     using Clients;
     using Thallium.Introspection;
 
+    public class FooController : ApiController
+    {
+        [HttpGet, System.Web.Http.Route("ping")]
+        public Task<Ping> Ping() => Task.FromResult(new Ping());
+
+        [HttpDelete, System.Web.Http.Route("gamesession/{id}/{session}")]
+        public Task Delete(long id, string session) => Task.FromResult(true);
+
+        [HttpPost, System.Web.Http.Route]
+        public Task<Ping> Create(Ping body) => Task.FromResult(body);
+
+        [System.Web.Http.Route("{id}")]
+        [HttpGet]
+        public Task<Ping> Read(long id) => Task.FromResult(new Ping());
+
+        [HttpPut, System.Web.Http.Route]
+        public Task<Ping> Update(Ping body) => Task.FromResult(body);
+
+        [System.Web.Http.Route("{id}")]
+        [HttpDelete]
+        public Task Delete(long id) => Task.FromResult(true);
+    }
+
     [TestFixture]
     class Generation
     {
+        readonly HttpServer _server;
+
+        public Generation()
+        {
+            var config = new HttpConfiguration();
+
+            config.MapHttpAttributeRoutes();
+
+            _server = new HttpServer(config);
+        }
+
         public void ObsoleteSyntax()
         {
 #pragma warning disable 612, 618
             Api.Emit(typeof(IFoo));
             Api.Emit(typeof(IFoo), typeof(RestClient));
-            Api.New<IFoo>("http://localhost.:80");
+            Api.New<IFoo>("http://localhost");
 
-            Api<TestClient, ICrudApi<Ping>>.New("http://localhost.:80");
-            Api<IFoo>.New("http://localhost.:80");
+            Api<TestClient, ICrudApi<Ping>>.New("http://localhost");
+            Api<IFoo>.New("http://localhost");
 
-            Api.On<TestClient>().New<ICrudApi<Ping>>("http://localhost.:80");
+            Api.On<TestClient>().New<ICrudApi<Ping>>("http://localhost");
 #pragma warning restore 612, 618
         }
 
         public void Syntax()
         {
-            var uri = new Uri("http://localhost.80");
+            var uri = new Uri("http://localhost");
 
-            using (Api.Rest().New<IBar>(uri)) { }
             using (Api.Rest().New<IFoo>(uri)) { }
         }
 
@@ -42,18 +75,19 @@ namespace Bede.Thallium.UnitTests
             var type = Api.On<TestClient>().Emit<IFoo>();
 
             Assert.IsNotNull(type);
+            Assert.IsTrue(typeof(TestClient).IsAssignableFrom(type));
         }
 
         [Test]
         public void Builder()
         {
-            var fluent = Api.Fluent().Fallback<Simple>();
+            var fluent = Api.Fluent();
 
             fluent.Api<IBar>().Get("ping").Method(x => x.Ping());
 
             var sut = Api.Rest().Using(fluent);
 
-            var bar = sut.New<IBar>(new Uri("http://localhost.:80"));
+            var bar = sut.New<IBar>(new Uri("http://localhost"), _server);
 
             var result = bar.Ping().Result;
 
@@ -63,47 +97,25 @@ namespace Bede.Thallium.UnitTests
         [Test]
         public void CrudClientGen()
         {
-            var sut = Api.Rest().New<ICrudApi<Ping>>(new Uri("http://localhost.:80"));
+            var sut = Api.Rest().New<ICrudApi<Ping>>(new Uri("http://localhost"), _server);
 
             Assert.IsNotNull(sut);
 
-            sut.Create(new Ping()).Wait();
-            sut.Create(new Ping()).Wait();
-        }
+            var p1 = sut.Create(new Ping()).Result;
 
-        [Test]
-        public void RestClientGen()
-        {
-            var sut = Api.Rest().New<IFoo>(new Uri("http://localhost.:80"));
-
-            var rc = sut as RestClient;
-
-            Assert.IsNotNull(rc);
-
-            rc.Head["X-Correlation-Token"] = "coral";
-            rc.Head["X-Site-Code"] = "mysite.com";
-
-            var res = sut.Ping().Result;
-
-            Assert.IsNotNull(res);
-
-            sut.DeleteSession(12345, "mySession", "foobar", "sitecode").Wait();
-
-            dynamic dict = new ExpandoObject();
-            dict.Foo = 2;
-            dict.Bar = 5;
-
-            var fs = File.OpenRead("..\\..\\app.config");
-
-            sut.DeleteSession(new [] { "123", "mySession" }, "arfbtwn", dict, dict, fs).Wait();
+            Assert.IsNotNull(p1);
         }
 
         [Test]
         public void DynamicClientGen()
         {
-            var sut = Api.Dynamic().New<IFoo>(new FixedConfig("http://localhost.:80"));
+            var sut = Api.Dynamic().New<IFoo>(new FixedConfig("http://localhost") { Handler = _server });
 
             Assert.IsNotNull(sut);
+
+            var p1 = sut.Ping().Result;
+
+            Assert.IsNotNull(p1);
         }
     }
 
@@ -125,7 +137,6 @@ namespace Bede.Thallium.UnitTests
         Task<Ping> Ping();
     }
 
-    [Route("api")]
     public interface IFoo : IBar
     {
         [Delete, Route("gamesession{/id,session}")]

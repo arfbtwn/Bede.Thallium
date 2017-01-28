@@ -10,7 +10,7 @@ namespace Bede.Thallium.UnitTests
         static readonly Dictionary<string, object> Params = new Dictionary<string, object>
         {
             { "count",      new [] { "one", "two", "three" } },
-            { "dom",        new [] { "example", "com"} },
+            { "dom",        new [] { "example", "com" } },
             { "dub",        "me/too" },
             { "hello",      "Hello World!" },
             { "half",       "50%" },

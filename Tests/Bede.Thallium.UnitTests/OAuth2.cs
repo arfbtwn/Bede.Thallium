@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
 {
-    [TestFixture]
+    [TestFixture, Ignore]
     class OAuth2
     {
         static IOAuth2 Sut()

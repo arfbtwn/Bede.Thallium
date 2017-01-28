@@ -19,7 +19,9 @@ namespace Bede.Thallium.UnitTests
         [Test]
         public void Single()
         {
-            var sut = Api.Fluent().Api<IBar>().Call(x => x.Ping()).Get("ping").Back().Back();
+            var sut = Api.Fluent();
+
+            sut.Api<IBar>().Call(x => x.Ping()).Get("ping");
 
             var api = Api.Rest().Using(sut).Emit<IBar>();
 
@@ -32,7 +34,6 @@ namespace Bede.Thallium.UnitTests
             var sut = Api.Fluent();
 
             sut
-                .Fallback<Simple>()
                 .Api<IFluentFoo>()
                     .Delete("gamesession{/id*}")
                         .Method(api => api.DeleteSession(P.Uri<string[]>(),
@@ -48,28 +49,16 @@ namespace Bede.Thallium.UnitTests
                                                          P.Header("X-Correlation-Token"),
                                                          P.Header("X-Site-Code")));
 
-            var sut2 = Api.Fluent().Api<IBar>().Get("ping").Method(api => api.Ping()).Back();
+            var sut2 = Api.Fluent();
+
+            sut2.Api<IBar>().Get("ping").Method(api => api.Ping());
+
+            Assert.AreEqual(2, sut.Map.Count);
+            Assert.AreEqual(1, sut2.Map.Count);
 
             sut.Include(sut2.Map);
 
-            var rc = Api.Rest().Using(sut).New<IFluentFoo>(new Uri("http://localhost.:80/api/"));
-
-            var bc = (RestClient) rc;
-            bc.Head["X-Correlation-Token"] = "foo";
-            bc.Head["X-Site-Code"]         = "site";
-
-            var res = rc.Ping().Result;
-
-            Assert.IsNotNull(res);
-
-            dynamic dict = new ExpandoObject();
-            dict.Foo = 2;
-            dict.Bar = 5;
-
-            var fs = File.OpenRead("..\\..\\app.config");
-
-            rc.DeleteSession(12345, "mySession", "foobar", "sitecode").Wait();
-            rc.DeleteSession(new [] { "123", "mySession" }, "arfbtwn", dict, dict, fs).Wait();
+            Assert.AreEqual(3, sut.Map.Count);
         }
     }
 
