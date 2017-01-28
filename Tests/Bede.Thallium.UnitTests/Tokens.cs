@@ -52,19 +52,6 @@ namespace Bede.Thallium.UnitTests
         }
 
         [Test]
-        public void Cache()
-        {
-            var sut = new Cache();
-
-            Assert.IsTrue(sut.Expired);
-
-            var t1 = sut.Token;
-            var t2 = sut.Token;
-
-            Assert.AreNotSame(t1, t2);
-        }
-
-        [Test]
         public void Expiration()
         {
             var sut = new Cache
@@ -88,29 +75,12 @@ namespace Bede.Thallium.UnitTests
 
             var sut = _oauth.Object.Tracker<OAuth>();
 
+            sut.Request.GrantType = "client_credentials";
+            sut.Request.Client    = "myclient";
+            sut.Request.Secret    = "secret";
+            sut.Request.Scopes    = new [] { "scope1" };
+
             sut.Auth().Wait();
-
-            _oauth.Verify();
-        }
-
-        [Test]
-        public void Syntax()
-        {
-            _oauth.Setup       (x => x.Auth(It.IsAny<OAuth>()))
-                  .ReturnsAsync(default(Token))
-                  .Verifiable();
-
-            _oauth.Setup       (x => x.Auth(It.IsAny<Refresh>()))
-                  .ReturnsAsync(default(Token))
-                  .Verifiable();
-
-            var o = _oauth.Object;
-
-            o.Auth(new OAuth()).Wait();
-
-            var tr = o.Tracker<Refresh>();
-
-            tr.Auth().Wait();
 
             _oauth.Verify();
         }
