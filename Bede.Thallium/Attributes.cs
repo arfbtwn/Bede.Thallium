@@ -13,7 +13,7 @@ namespace Bede.Thallium
                     AttributeTargets.Method)]
     public class RouteAttribute : Attribute
     {
-        public string Route { get; set; }
+        public string Route { get; private set; }
 
         public RouteAttribute(string route)
         {
