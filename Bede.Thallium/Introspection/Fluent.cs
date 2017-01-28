@@ -72,7 +72,10 @@ namespace Bede.Thallium.Introspection
             _maps = new Dictionary<Type, IMap>();
         }
 
-        public IMap Map => this;
+        public IMap Map
+        {
+            get { Reduce(); return this; }
+        }
 
         public IFluent Fallback(IIntrospect introspector)
         {
