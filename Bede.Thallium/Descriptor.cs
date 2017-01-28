@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
 
@@ -58,6 +59,7 @@ namespace Bede.Thallium
         public bool   SetFileName;
     }
 
+    [DebuggerDisplay("{Verb.Method} {Template}")]
     public class Description
     {
         public HttpMethod Verb;
