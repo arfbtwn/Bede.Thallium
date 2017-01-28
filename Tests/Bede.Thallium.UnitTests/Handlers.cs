@@ -54,7 +54,8 @@ namespace Bede.Thallium.UnitTests
                     Assert.IsFalse(brk.IsOpen);
                 })
                 .On(x => x.StatusCode.IsServerError())
-                .ThrowOnFail();
+                .ThrowOnFail()
+                .WrapAll();
 
             Assert.IsNotNull(sut);
 
