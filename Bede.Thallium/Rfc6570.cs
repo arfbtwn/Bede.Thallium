@@ -18,14 +18,7 @@ namespace Bede.Thallium
 
         public string Expand(string template, Params parameters)
         {
-            List<string> list = null;
-            return Expand(template, parameters, ref list);
-        }
-
-        public string Expand(string template, Params parameters, ref List<string> unused)
-        {
-            var used = new HashSet<string>();
-            var inV  = false;
+            var inV = false;
 
             foreach (var c in template)
             {
@@ -36,7 +29,7 @@ namespace Bede.Thallium
                         break;
                     case '}':
                         inV = false;
-                        Expand(parameters, used);
+                        Expand(parameters);
                         break;
                     default:
                         if (inV) Variable.Append(c);
@@ -45,15 +38,10 @@ namespace Bede.Thallium
                 }
             }
 
-            if (null != unused)
-            {
-                unused.AddRange(parameters.Keys.Except(used));
-            }
-
             return Builder.ToString();
         }
 
-        void Expand(Params keys, ICollection<string> used)
+        void Expand(Params keys)
         {
             char   op   = Variable[0];
             string vars = null;
@@ -70,12 +58,12 @@ namespace Bede.Thallium
 
             var args = Mappings[op];
 
-            Expand((char) args[0], (char) args[1], (bool) args[2], (char) args[3], (bool) args[4], vars, keys, used);
+            Expand((char) args[0], (char) args[1], (bool) args[2], (char) args[3], (bool) args[4], vars, keys);
 
             Variable.Clear();
         }
 
-        void Expand(char fst, char sep, bool named, char ifemp, bool allow, string vars, Params keys, ICollection<string> used)
+        void Expand(char fst, char sep, bool named, char ifemp, bool allow, string vars, Params keys)
         {
             var var = new StringBuilder();
             var len = new StringBuilder();
@@ -90,7 +78,6 @@ namespace Bede.Thallium
                 {
                     case ',':
                         Expand(fst, sep, named, ifemp, allow, keys, var.ToString(), explode, prefix, len.ToString(), ref first);
-                        used.Add(var.ToString());
                         var.Clear();
                         len.Clear();
                         prefix  = false;
@@ -110,7 +97,6 @@ namespace Bede.Thallium
             }
 
             Expand(fst, sep, named, ifemp, allow, keys, var.ToString(), explode, prefix, len.ToString(), ref first);
-            used.Add(var.ToString());
         }
 
         void Expand(char fst, char sep, bool named, char ifemp, bool allow, Params keys, string key, bool explode, bool prefix, string length, ref bool first)
