@@ -38,8 +38,8 @@ namespace Bede.Thallium.UnitTests
                     .Delete("gamesession{/id*}")
                         .Method(api => api.DeleteSession(P.Uri<string[]>(),
                                                          P.Form<string>("string"),
-                                                         P.Form<Dict>("first").FormUrl().Done(),
-                                                         P.Form<Dict>("second", "theFile").Done(),
+                                                         P.Form<Dict>("first").FormUrl(),
+                                                         P.Form<Dict>("second", "theFile"),
                                                          P.Form<FileStream>().Octet()))
                         .Multi("form-data", "BOUNDARY")
                         .Back()
