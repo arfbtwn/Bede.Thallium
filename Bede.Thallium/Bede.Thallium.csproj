@@ -109,6 +109,7 @@
     <Compile Include="Rfc2616.cs" />
     <Compile Include="Rfc6570.cs" />
     <Compile Include="ExceptionKeys.cs" />
+    <Compile Include="Rfc6570_2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Bede.Thallium.nuspec" />

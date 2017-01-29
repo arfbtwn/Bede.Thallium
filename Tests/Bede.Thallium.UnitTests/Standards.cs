@@ -143,5 +143,15 @@ namespace Bede.Thallium.UnitTests
 
             Assert.AreEqual(expected, res);
         }
+
+        [TestCaseSource(nameof(Cases))]
+        public void New(string template, string expected)
+        {
+            var sut = new Rfc6570_2(template);
+
+            var res = sut.Expand(Params);
+
+            Assert.AreEqual(expected, res);
+        }
     }
 }
