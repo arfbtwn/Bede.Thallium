@@ -1,23 +1,68 @@
 ﻿using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Bede.Thallium
 {
     using Belt;
 
-    using Param  = KeyValuePair<string, object>;
-    using Params = Dictionary  <string, object>;
+    using Params = IReadOnlyDictionary<string, object>;
 
     class Rfc6570
     {
-        protected readonly StringBuilder Builder  = new StringBuilder();
-        protected readonly StringBuilder Variable = new StringBuilder();
+        static readonly Type IDict = typeof(IDictionary);
+        static readonly Type IEnum = typeof(IEnumerable<>);
+        static readonly Type KvP   = typeof(KeyValuePair<,>);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static IDictionary as_dict(object val)
+        {
+            return val as IDictionary ?? (is_enumKV(val?.GetType()) ? strip((IEnumerable) val) : null);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool is_dict(Type type)
+        {
+            return IDict.IsAssignableFrom(type);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool is_enumKV(Type type)
+        {
+            if (null == type) return false;
+
+            if (!type.IsGenericType) return false;
+
+            var def = type.GetGenericTypeDefinition();
+
+            if (IEnum != def) return false;
+
+            var arg = type.GetGenericArguments()[0];
+
+            def = arg.GetGenericTypeDefinition();
+
+            return KvP == def;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static IDictionary strip(IEnumerable val)
+        {
+            var _ = new Dictionary<object, object>();
+            foreach (dynamic o in val)
+            {
+                _[o.Key] = o.Value;
+            }
+            return _;
+        }
+
+        protected internal          StringBuilder Builder  = new StringBuilder();
+        protected internal readonly StringBuilder Variable = new StringBuilder();
 
         public string Expand(string template, Params parameters)
         {
+            Builder.Clear();
             var inV = false;
 
             foreach (var c in template)
@@ -26,6 +71,7 @@ namespace Bede.Thallium
                 {
                     case '{':
                         inV = true;
+                        Variable.Clear();
                         break;
                     case '}':
                         inV = false;
@@ -41,28 +87,34 @@ namespace Bede.Thallium
             return Builder.ToString();
         }
 
-        void Expand(Params keys)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void Expand(Params keys)
         {
-            char   op   = Variable[0];
-            string vars = null;
+            char     op   = Variable[0];
+            string   vars = null;
+            object[] args = Map[0];
 
-            if (Mappings.ContainsKey(op))
+            switch(op)
             {
-                vars = Variable.Remove(0, 1).ToString();
+                case '#':  args = Map[7]; goto case '\0';
+                case '&':  args = Map[6]; goto case '\0';
+                case '?':  args = Map[5]; goto case '\0';
+                case ';':  args = Map[4]; goto case '\0';
+                case '/':  args = Map[3]; goto case '\0';
+                case '.':  args = Map[2]; goto case '\0';
+                case '+':  args = Map[1]; goto case '\0';
+                case '\0':
+                    vars = Variable.ToString(1, Variable.Length - 1);
+                    break;
+                default:
+                    vars = Variable.ToString();
+                    break;
             }
-            else
-            {
-                op   = '\0';
-                vars = Variable.ToString();
-            }
-
-            var args = Mappings[op];
 
             Expand((char) args[0], (char) args[1], (bool) args[2], (char) args[3], (bool) args[4], vars, keys);
-
-            Variable.Clear();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Expand(char fst, char sep, bool named, char ifemp, bool allow, string vars, Params keys)
         {
             var var = new StringBuilder();
@@ -99,6 +151,7 @@ namespace Bede.Thallium
             Expand(fst, sep, named, ifemp, allow, keys, var.ToString(), explode, prefix, len.ToString(), ref first);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Expand(char fst, char sep, bool named, char ifemp, bool allow, Params keys, string key, bool explode, bool prefix, string length, ref bool first)
         {
             object obj;
@@ -107,153 +160,197 @@ namespace Bede.Thallium
                 return;
             }
 
-            Expand(fst, sep, named, ifemp, allow, key, obj, explode, prefix, length, first);
+            Expand(Builder, fst, sep, named, ifemp, allow, key, obj, explode, prefix, length, first);
             first = false;
         }
 
-        void Expand(char fst, char sep, bool named, char ifemp, bool allow, string key, object obj, bool explode, bool prefix, string length, bool first)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void Expand(StringBuilder builder, char fst, char sep, bool named, char ifemp, bool allow, string key, object obj, bool explode, bool prefix, string length, bool first)
         {
-            var objs = obj as ICollection;
+            var str  = obj as string;
+            var objs = obj as IEnumerable;
 
-            Builder.Append(tos(first ? fst : sep));
+            builder.Append(tos(first ? fst : sep));
 
-            if (null == objs)
+            if (null == objs || null != str)
             {
-                Expand(named, ifemp, allow, key, obj.ToString(), prefix, length);
+                if (prefix)
+                {
+                    Expand(builder, named, ifemp, allow, key, obj.ToString(), true, int.Parse(length));
+                }
+                else
+                {
+                    Expand(builder, named, ifemp, allow, key, obj.ToString(), false);
+                }
             }
-            else if (!explode)
+            else if (explode)
             {
-                NoExplode(named, ifemp, allow, key, objs);
+                Explode(builder, sep, named, ifemp, allow, key, objs);
             }
             else
             {
-                Explode(sep, named, ifemp, allow, key, objs);
+                NoExplode(builder, named, ifemp, allow, key, objs);
             }
         }
 
-        void Expand(bool named, char ifemp, bool allow, string key, string val, bool prefix, string length)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void Expand(StringBuilder builder, bool named, char ifemp, bool allow, string key, string val, bool prefix, int length = int.MaxValue)
         {
-            var empt = string.IsNullOrEmpty(val);
+            if (named)
+            {
+                var empt = string.IsNullOrEmpty(val);
+
+                builder.Append(key);
+                builder.Append(tos(empt ? ifemp : '='));
+            }
+
+            builder.Append(prefix ? cyc(val, allow, length) : cyc(val, allow));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void NoExplode(StringBuilder builder, bool named, char ifemp, bool allow, string key, IEnumerable val)
+        {
+            var dict = as_dict(val);
 
             if (named)
             {
-                Builder.Append(key);
-                Builder.Append(tos(empt ? ifemp : '='));
+                builder.Append(key);
+                builder.Append(tos(empt(val) ? ifemp : '='));
             }
 
-            Builder.Append(cyc(val, allow, prefix ? int.Parse(length) : int.MaxValue));
+            if (null == dict)
+            {
+                List(builder, val, ',', allow);
+            }
+            else
+            {
+                Dict(builder, dict, ',', ',', ifemp, allow);
+            }
         }
 
-        void NoExplode(bool named, char ifemp, bool allow, string key, ICollection val)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void Explode(StringBuilder builder, char sep, bool named, char ifemp, bool allow, string key, IEnumerable val)
         {
-            var first = true;
+            var dict = as_dict(val);
 
-            if (named)
+            if (null == dict)
             {
-                Builder.Append(key);
-                Builder.Append(tos(empt(val) ? ifemp : '='));
+                List(builder, val, sep, named, key, allow);
             }
+            else
+            {
+                Dict(builder, dict, sep, '=', ifemp, allow);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void List(StringBuilder builder, IEnumerable val, char sep, bool allow)
+        {
+            var first = string.Empty;
 
             foreach (var o in val)
             {
-                if (empt(o)) continue;
+                if (null == o) continue;
 
-                var type = o.GetType();
-                var isKvp = o is DictionaryEntry || type.HasGenericDefinition(typeof(KeyValuePair<,>));
+                builder.Append(first);
 
-                if (!first) Builder.Append(',');
+                AppendObj(builder, o, allow);
 
-                if (isKvp)  AppendKvp(o, ',', ifemp, allow);
-                else        AppendObj(o, allow);
-
-                first = false;
+                first = sep.ToString();
             }
         }
 
-        void Explode(char sep, bool named, char ifemp, bool allow, string key, ICollection val)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void List(StringBuilder builder, IEnumerable val, char sep, bool named, string key, bool allow)
         {
-            var first = true;
+            var first = string.Empty;
+            var name  = named ? key + '=' : string.Empty;
 
             foreach (var o in val)
             {
-                if (empt(o)) continue;
+                if (null == o) continue;
 
-                var type = o.GetType();
-                var isKvp = o is DictionaryEntry || type.HasGenericDefinition(typeof(KeyValuePair<,>));
+                builder.Append(first);
+                builder.Append(name);
 
-                if (!first) Builder.Append(sep);
+                AppendObj(builder, o, allow);
 
-                if (isKvp) AppendKvp(o, '=', ifemp, allow);
-                else
-                {
-                    if (named) Builder.Append(key + '=');
-                    AppendObj(o, allow);
-                }
-
-                first = false;
+                first = sep.ToString();
             }
         }
 
-        void AppendKvp(object o, char sep, char ifemp, bool allow)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void Dict(StringBuilder builder, IDictionary dict, char sep, char kvsep, char ifemp, bool allow)
         {
-            var kv = kvp(o);
+            var first = string.Empty;
 
-            var k = cyc(kv.Key, allow);
-            Builder.Append(k);
+            foreach (DictionaryEntry o in dict)
+            {
+                builder.Append(first);
+
+                AppendKvp(builder, o, kvsep, ifemp, allow);
+
+                first = sep.ToString();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void AppendKvp(StringBuilder builder, DictionaryEntry kv, char sep, char ifemp, bool allow)
+        {
+            AppendObj(builder, kv.Key, allow);
 
             var v = cyc((kv.Value ?? string.Empty).ToString(), allow);
 
-            if (string.IsNullOrWhiteSpace(v))
-                Builder.Append(ifemp);
+            if (0 == v.Length)
+                builder.Append(ifemp);
             else
-                Builder.Append(sep + v);
+                builder.Append(sep + v);
         }
 
-        void AppendObj(object o, bool allow)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void AppendObj(StringBuilder builder, object o, bool allow)
         {
             var v = cyc(o.ToString(), allow);
 
-            Builder.Append(v);
+            builder.Append(v);
         }
 
-        static bool empt(object o)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool empt(object o)
         {
             return null == o || o is ICollection && 0 == ((ICollection) o).Count;
         }
 
-        static string cyc(string input, bool allow, int len = int.MaxValue)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static string cyc(string input, bool allow, int len)
         {
-            var ues = Uri.UnescapeDataString(input);
+            if (len < input.Length) input = input.Substring(0, len);
 
-            if (len < ues.Length) ues = ues.Substring(0, len);
-
-            return allow
-                ? Uri.EscapeUriString (ues)
-                : Uri.EscapeDataString(ues);
+            return cyc(input, allow);
         }
 
-        static Param kvp(object o)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static string cyc(string input, bool allow)
         {
-            var dyn = (dynamic) o;
-
-            return new Param(dyn.Key.ToString(), dyn.Value);
+            return allow ? Uri.EscapeUriString(input) : Uri.EscapeDataString(input);
         }
 
-        static string tos(char ch)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static string tos(char ch)
         {
             return 0 == ch ? string.Empty : ch.ToString();
         }
 
-        static readonly Dictionary<char, object[]> Mappings = new Dictionary<char, object[]>
+        internal static readonly object[][] Map =
         {
-            { '\0', new object[] { '\0', ',', false, '\0', false } },
-            {  '+', new object[] { '\0', ',', false, '\0', true  } },
-            {  '.', new object[] {  '.', '.', false, '\0', false } },
-            {  '/', new object[] {  '/', '/', false, '\0', false } },
-            {  ';', new object[] {  ';', ';', true,  '\0', false } },
-            {  '?', new object[] {  '?', '&', true,   '=', false } },
-            {  '&', new object[] {  '&', '&', true,   '=', false } },
-            {  '#', new object[] {  '#', ',', false,  '=', true  } },
+            new object[] { '\0', ',', false, '\0', false },
+            new object[] { '\0', ',', false, '\0', true  },
+            new object[] {  '.', '.', false, '\0', false },
+            new object[] {  '/', '/', false, '\0', false },
+            new object[] {  ';', ';', true,  '\0', false },
+            new object[] {  '?', '&', true,   '=', false },
+            new object[] {  '&', '&', true,   '=', false },
+            new object[] {  '#', ',', false,  '=', true  },
         };
     }
 }

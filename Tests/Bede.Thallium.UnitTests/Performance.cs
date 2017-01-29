@@ -37,5 +37,22 @@ namespace Bede.Thallium.UnitTests
             Console.WriteLine(st.Elapsed);
             Assert.Less(st.Elapsed, _limit);
         }
+
+        [TestCaseSource(nameof(Cases))]
+        public void New(string template)
+        {
+            var expander = new Rfc6570_2(template).Compile();
+
+            var st = Stopwatch.StartNew();
+
+            for (var i = 0; i < _iterations; ++i)
+            {
+                expander.Expand(Standards.Params);
+            }
+
+            st.Stop();
+            Console.WriteLine(st.Elapsed);
+            Assert.Less(st.Elapsed, _limit);
+        }
     }
 }
