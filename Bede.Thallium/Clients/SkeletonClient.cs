@@ -28,6 +28,8 @@ namespace Bede.Thallium.Clients
                                                     new FormUrlEncoder()
                                                  };
         internal static TimeSpan   Timeout    => TimeSpan.FromMinutes(2);
+
+        internal static Rfc6570_2  Expander(string path) => new Rfc6570_2(path);
     }
 
     /// <summary>
@@ -35,6 +37,8 @@ namespace Bede.Thallium.Clients
     /// </summary>
     public abstract class SkeletonClient
     {
+        readonly Dictionary<string, Rfc6570_2> _expanders = new Dictionary<string, Rfc6570_2>();
+
         /// <summary>
         /// The URI used by the client
         /// </summary>
@@ -182,7 +186,7 @@ namespace Bede.Thallium.Clients
         /// <returns></returns>
         protected virtual string Template(string path, Params parameters)
         {
-            return new Rfc6570().Expand(path, parameters);
+            return _expanders.Lookup(path, Default.Expander).Expand(parameters);
         }
 
         /// <summary>
