@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package >
+<package>
   <metadata>
     <id>$id$</id>
     <version>$version$</version>
@@ -9,8 +9,5 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <copyright>$copyright$</copyright>
-    <frameworkAssemblies>
-      <frameworkAssembly assemblyName="System.Net.Http.Formatting" targetFramework="net40" />
-    </frameworkAssemblies>
   </metadata>
 </package>
