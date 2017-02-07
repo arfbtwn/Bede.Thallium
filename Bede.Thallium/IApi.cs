@@ -76,7 +76,7 @@ namespace Bede.Thallium
     }
 
 #pragma warning disable 1591
-    public static class ApiExtensions
+    public static partial class ApiExtensions
     {
         public static Type Emit<T>(this IApi emitter)
         {
