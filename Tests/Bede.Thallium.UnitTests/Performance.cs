@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
 {
+    [Ignore("Run manually")]
     [TestFixture(1e3, 50)]
     [TestFixture(1e6, 10000)]
     class Performance

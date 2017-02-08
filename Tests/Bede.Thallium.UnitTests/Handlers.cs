@@ -63,7 +63,7 @@ namespace Bede.Thallium.UnitTests
             {
                 for (var i = 0; i < limit + 1; ++i)
                 {
-                    Assert.Throws<HttpRequestException>(async () => await client.SendAsync(m));
+                    Assert.ThrowsAsync<HttpRequestException>(async () => await client.SendAsync(m));
                 }
             }
 
