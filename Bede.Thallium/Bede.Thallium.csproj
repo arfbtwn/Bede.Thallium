@@ -74,9 +74,11 @@
     <Compile Include="Data\DateTime.cs" />
     <Compile Include="Formatting\FormUrlEncoder.cs" />
     <Compile Include="Formatting\NewtonsoftJsonFormatter.cs" />
+    <Compile Include="Handlers\_Exception.cs" />
     <Compile Include="Handlers\HandlerBuilder.cs" />
     <Compile Include="Handlers\RecordingHandler.cs" />
     <Compile Include="Auth\Authenticators.cs" />
+    <Compile Include="Handlers\Throw.cs" />
     <Compile Include="IApi.cs" />
     <Compile Include="IApi.Overloads.cs">
       <DependentUpon>IApi.cs</DependentUpon>
