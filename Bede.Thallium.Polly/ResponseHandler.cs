@@ -14,6 +14,8 @@ namespace Bede.Thallium.Polly
 
     public abstract class ResponseHandler : DelegatingHandler
     {
+        static bool Always(HttpResponseMessage msg) => true;
+
         readonly ISet<Predicate> _predicates = new HashSet<Predicate>();
 
         protected ResponseHandler(HttpMessageHandler inner) : base(inner)
@@ -23,7 +25,7 @@ namespace Bede.Thallium.Polly
 
         bool _(HttpResponseMessage msg)
         {
-            return _predicates.Any(x => x(msg));
+            return _predicates.DefaultIfEmpty(Always).Any(x => x(msg));
         }
 
         protected PolicyBuilder<HttpResponseMessage> Builder { get; set; }
