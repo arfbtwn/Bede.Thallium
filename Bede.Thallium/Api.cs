@@ -29,6 +29,14 @@ namespace Bede.Thallium
         static readonly Factory Factory = new Factory();
 
         /// <summary>
+        /// Gets or sets the default introspector used when none is provided
+        /// </summary>
+        /// <remarks>
+        /// Can be used to customise introspection of interfaces used in black boxes
+        /// </remarks>
+        public static IIntrospect Introspector = new Simple();
+
+        /// <summary>
         /// Gets a fluently configurable introspector
         /// </summary>
         /// <returns></returns>
