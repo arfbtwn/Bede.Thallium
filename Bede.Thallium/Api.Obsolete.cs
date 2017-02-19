@@ -42,7 +42,7 @@ namespace Bede.Thallium
 
         static IIntrospect _up(Introspector i)
         {
-            return null == i ? (IIntrospect) new Simple() : new Adapter(i);
+            return null == i ? Introspector : new Adapter(i);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Bede.Thallium
         [Obsolete]
         public static Type Emit(Type type, Type parent = null, IIntrospect introspector = null)
         {
-            return Factory.Build(parent ?? typeof(RestClient), type, introspector ?? new Simple());
+            return Factory.Build(parent ?? typeof(RestClient), type, introspector ?? Introspector);
         }
 
         /// <summary>
