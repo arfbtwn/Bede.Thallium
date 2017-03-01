@@ -70,6 +70,7 @@
     <Compile Include="Generation.cs" />
     <Compile Include="Handlers.cs" />
     <Compile Include="Introspection.cs" />
+    <Compile Include="Mocking.cs" />
     <Compile Include="OAuth2.cs" />
     <Compile Include="Performance.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -85,6 +86,10 @@
     <ProjectReference Include="..\..\Bede.Thallium.Polly\Bede.Thallium.Polly.csproj">
       <Project>{1a439f63-7eaa-4748-b38e-d4d131b9b0af}</Project>
       <Name>Bede.Thallium.Polly</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bede.Thallium.Testing\Bede.Thallium.Testing.csproj">
+      <Project>{44366635-e201-4c5f-a2dc-965aee2d6892}</Project>
+      <Name>Bede.Thallium.Testing</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Bede.Thallium\Bede.Thallium.csproj">
       <Project>{6c80de8f-ea5c-4bc7-8351-64600cea0082}</Project>
