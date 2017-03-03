@@ -57,7 +57,6 @@ namespace Bede.Thallium
                 @this.Emit(OpCodes.Newobj, nt.GetConstructor(new [] { source }));
 
                 @this.MarkLabel(br);
-                @this.Emit(OpCodes.Castclass, nt);
             }
         }
     }

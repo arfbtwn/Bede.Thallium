@@ -5,12 +5,24 @@ using System.Net.Http.Headers;
 
 namespace Bede.Thallium
 {
+    using static Constants;
+
+    static class Constants
+    {
+        public const AttributeTargets CIM  = AttributeTargets.Class     |
+                                             AttributeTargets.Interface |
+                                             AttributeTargets.Method;
+
+        public const AttributeTargets IPMP = AttributeTargets.Interface |
+                                             AttributeTargets.Property  |
+                                             AttributeTargets.Method    |
+                                             AttributeTargets.Parameter;
+    }
+
     /// <summary>
     /// Specifies a route template for a method
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class     |
-                    AttributeTargets.Interface |
-                    AttributeTargets.Method)]
+    [AttributeUsage(CIM)]
     public class RouteAttribute : Attribute
     {
         public string Route { get; private set; }
@@ -89,11 +101,7 @@ namespace Bede.Thallium
     /// <summary>
     /// Marks a member as a header with the given name
     /// </summary>
-    [AttributeUsage(AttributeTargets.Interface |
-                    AttributeTargets.Property  |
-                    AttributeTargets.Method    |
-                    AttributeTargets.Parameter,
-                    AllowMultiple = true)]
+    [AttributeUsage(IPMP, AllowMultiple = true)]
     public class HeaderAttribute : Attribute
     {
         public string Name  { get; private set; }
@@ -123,7 +131,7 @@ namespace Bede.Thallium
         public virtual string Value { get; set; }
     }
 
-    [AttributeUsage(AttributeTargets.Parameter)]
+    [AttributeUsage(IPMP)]
     public class TypeAttribute : ContentHeaderAttribute
     {
         protected TypeAttribute() { }
@@ -140,7 +148,7 @@ namespace Bede.Thallium
         }
     }
 
-    [AttributeUsage(AttributeTargets.Parameter)]
+    [AttributeUsage(IPMP)]
     public class DispositionAttribute : ContentHeaderAttribute
     {
         protected DispositionAttribute() { }
@@ -157,7 +165,7 @@ namespace Bede.Thallium
         }
     }
 
-    [AttributeUsage(AttributeTargets.Parameter)]
+    [AttributeUsage(IPMP)]
     public sealed class FormDataAttribute : DispositionAttribute
     {
         public FormDataAttribute() { }
@@ -208,13 +216,13 @@ namespace Bede.Thallium
         public string Boundary { get; set; }
     }
 
-    [AttributeUsage(AttributeTargets.Parameter)]
+    [AttributeUsage(IPMP)]
     public sealed class FormUrlAttribute : TypeAttribute
     {
         public FormUrlAttribute() : base("application/x-www-form-urlencoded") { }
     }
 
-    [AttributeUsage(AttributeTargets.Parameter)]
+    [AttributeUsage(IPMP)]
     public sealed class OctetAttribute : TypeAttribute
     {
         public OctetAttribute() : base("application/octet-stream") { }
