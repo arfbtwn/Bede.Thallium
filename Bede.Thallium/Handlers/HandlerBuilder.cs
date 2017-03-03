@@ -29,7 +29,6 @@ namespace Bede.Thallium.Handlers
             return @this;
         }
 
-        [Obsolete]
         public static RecordingHandler OnRequest(this RecordingHandler @this, EventHandler<HttpRequestMessage> handler)
         {
             @this.Request += handler;
@@ -37,7 +36,6 @@ namespace Bede.Thallium.Handlers
             return @this;
         }
 
-        [Obsolete]
         public static RecordingHandler OnResponse(this RecordingHandler @this, EventHandler<HttpResponseMessage> handler)
         {
             @this.Response += handler;
