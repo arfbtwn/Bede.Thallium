@@ -60,7 +60,7 @@ namespace Bede.Thallium.Introspection
                 var i = _i.Cons(Declaring(_i))
                           .Reverse();
 
-                return p.Concat(i).ToArray();
+                return p.Union(i).ToArray();
             }
         }
 

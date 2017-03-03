@@ -32,6 +32,9 @@ namespace Bede.Thallium.UnitTests
         [System.Web.Http.Route("{id}")]
         [HttpDelete]
         public Task Delete(long id) => Task.FromResult(true);
+
+        [Put, System.Web.Http.Route("valueType")]
+        public Task Put(long id) => Task.FromResult(true);
     }
 
     [TestFixture]
@@ -117,6 +120,22 @@ namespace Bede.Thallium.UnitTests
 
             Assert.IsNotNull(p1);
         }
+
+        [Test]
+        public void ValueTypeBody()
+        {
+            var sut = Api.Rest().New<IValueType>(new Uri("http://localhost"), _server);
+
+            Assert.DoesNotThrow(() => sut.Put(1).Wait());
+        }
+
+        [Test]
+        public void StaticHeaders()
+        {
+            var sut = Api.Rest().New<IStaticHeader>(new Uri("http://localhost"), _server);
+
+            Assert.DoesNotThrow(() => sut.Post(1).Wait());
+        }
     }
 
     public class TestClient : RestClient
@@ -158,5 +177,18 @@ namespace Bede.Thallium.UnitTests
         [Put]            Task<T> Update(T body);
 
         [Delete("{id}")] Task    Delete(long id);
+    }
+
+    public interface IValueType
+    {
+        [Put("valueType")]
+        Task Put(long body);
+    }
+
+    [Type("application/myapp")]
+    public interface IStaticHeader
+    {
+        [Post]
+        Task Post(long body);
     }
 }
