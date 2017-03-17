@@ -59,7 +59,7 @@ namespace Bede.Thallium.UnitTests
 
             Assert.IsFalse(sut.Expired);
 
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            Thread.Sleep(TimeSpan.FromSeconds(2));
 
             Assert.IsTrue(sut.Expired);
         }

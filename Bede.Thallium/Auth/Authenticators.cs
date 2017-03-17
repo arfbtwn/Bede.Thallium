@@ -52,8 +52,8 @@ namespace Bede.Thallium.Auth
 
     class Cache
     {
-        Token    _token;
-        DateTime _next;
+        Token          _token;
+        DateTimeOffset _next;
 
         public Token Token
         {
@@ -61,11 +61,12 @@ namespace Bede.Thallium.Auth
             set
             {
                 _token = value;
-                _next = DateTime.UtcNow + TimeSpan.FromSeconds(_token.expires_in ?? 0);
+                _next  = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(_token.expires_in ?? 0);
             }
         }
 
-        public bool Expired => _next <= DateTime.UtcNow;
+        public DateTimeOffset Next    => _next;
+        public bool           Expired => _next <= DateTime.UtcNow;
     }
 
     class Track<T> : Cache, ITrack<T> where T : OAuth
