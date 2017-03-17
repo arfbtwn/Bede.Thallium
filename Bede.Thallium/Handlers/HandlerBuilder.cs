@@ -17,6 +17,8 @@ namespace Bede.Thallium.Handlers
             return @this;
         }
 
+        public static RecordingHandler Record(this HttpMessageHandler @this) => Record(@this, null);
+
         public static RecordingHandler Record(this HttpMessageHandler @this, Action<RecordingHandler> setup = null)
         {
             var _ = new RecordingHandler(@this);

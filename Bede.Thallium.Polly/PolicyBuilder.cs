@@ -12,7 +12,7 @@ namespace Bede.Thallium.Polly
 
     using static TimeSpan;
 
-    public static class PolicyBuilder
+    public static partial class PolicyBuilder
     {
         /// <summary>
         /// The default number of retries
