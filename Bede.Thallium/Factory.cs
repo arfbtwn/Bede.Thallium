@@ -93,17 +93,15 @@ namespace Bede.Thallium
             };
         }
 
-        static string MakeName(Type parent, Type target)
-        {
-            var tn = target.Name;
-            var crete = 'I' == tn[0] ? tn.Substring(1) : tn;
-            return parent.Namespace + "." + crete + parent.Name;
-        }
-
         static IEnumerable<MethodInfo> Methods(Type root)
         {
             return root.GetMethods()
                        .Union(root.GetInterfaces().SelectMany(Methods));
+        }
+
+        static IEnumerable<Tuple<MethodInfo, MethodInfo>> ZipMap(InterfaceMapping map)
+        {
+            return map.InterfaceMethods.Zip(map.TargetMethods, Tuple.Create);
         }
 
         internal IImp Imp = new Imp();
@@ -137,20 +135,33 @@ namespace Bede.Thallium
             Assertion.IsAccessible   ("target",       target);
 
             Assertion.IsClass        ("parent",       parent);
-            Assertion.IsNotAbstract  ("parent",       parent);
             Assertion.ExtendsSkeleton("parent",       parent);
             Assertion.IsNotSealed    ("parent",       parent);
             Assertion.IsInterface    ("target",       target);
 
-            var all     = Methods(target).Where(ReflectionExtensions.IsMethod);
-            var ignored = Methods(parent).Where(ReflectionExtensions.IsMethod);
+            var methods = Methods(target).Where(ReflectionExtensions.IsMethod);
 
-            var methods = all.Except(ignored).ToDictionary(x => x, x => introspector.Call(target, x));
+            var maps = parent.GetInterfaces()
+                             .Select(parent.GetInterfaceMap)
+                             .SelectMany(ZipMap)
+                             .ToDictionary(x => x.Item1, x => x.Item2);
 
-            foreach (var kv in methods)
+            var name = parent.Derived(target);
+
+            var typB = ModB.DefineType(name:       name,
+                                       attr:       TypeAttributes.Class,
+                                       parent:     parent,
+                                       interfaces: new [] { target });
+
+            foreach (var method in methods)
             {
-                var method = kv.Key;
-                var call   = kv.Value;
+                MethodInfo over;
+                if (maps.TryGetValue(method, out over) && !over.IsAbstract)
+                {
+                    continue;
+                }
+
+                var call = introspector.Call(parent, method);
 
                 call.Headers = call.Headers ?? new Headers();
                 call.Body    = call.Body    ?? new Body();
@@ -158,18 +169,6 @@ namespace Bede.Thallium
 
                 Assertion.IsAsync(method);
                 Assertion.HasValidDescription(method, call);
-            }
-
-            var targetName = MakeName(parent, target);
-
-            var typB = ModB.DefineType(name:       targetName,
-                                       attr:       TypeAttributes.Class,
-                                       parent:     parent,
-                                       interfaces: new [] { target });
-
-            foreach (var method in methods.Keys)
-            {
-                var call = methods[method];
 
                 var args = method.GetParameters();
 
@@ -182,6 +181,11 @@ namespace Bede.Thallium
                 var ilG = metB.GetILGenerator();
 
                 typB.DefineMethodOverride(metB, method);
+
+                if (null != over)
+                {
+                    typB.DefineMethodOverride(metB, over);
+                }
 
                 // Separate parameters
                 var bodyP = call.Body.Keys.ToArray();
