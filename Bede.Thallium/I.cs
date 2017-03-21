@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -25,6 +26,33 @@ namespace Bede.Thallium
         internal static Call Introspect(MethodInfo method)
         {
             return new AttributeInspection(method).V1();
+        }
+
+        internal static IEnumerable<Type> Declaring(this Type type)
+        {
+            while(null != type.DeclaringType)
+            {
+                yield return type.DeclaringType;
+
+                type = type.DeclaringType;
+            }
+        }
+
+        internal static string Concrete(this Type type)
+        {
+            return type.IsInterface && 'I' == type.Name[0] ? type.Name.Substring(1)
+                                                           : type.Name;
+        }
+
+        internal static string Derived(this Type parent, Type target)
+        {
+            var list = new List<string> { parent.Namespace };
+
+            list.AddRange(parent.Declaring().Reverse().Select(x => x.Name));
+
+            list.Add(parent.Name + target.Concrete());
+
+            return string.Join(".", list.Except(new string[] { null }));
         }
 
         internal static void EmitCall(this ILGenerator @this, MethodInfo method)
