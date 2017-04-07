@@ -1,6 +1,8 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Formatting;
+using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace Bede.Thallium
 {
@@ -85,7 +87,16 @@ namespace Bede.Thallium
 
         static T _new<T>(Type type, params object[] args)
         {
-            return (T) Activator.CreateInstance(type, args);
+            try
+            {
+                return (T) Activator.CreateInstance(type, args);
+            }
+            catch (TargetInvocationException e)
+            {
+                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+
+                throw;
+            }
         }
 
         [Obsolete("Construction overload is not type-safe")]

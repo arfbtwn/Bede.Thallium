@@ -136,6 +136,12 @@ namespace Bede.Thallium.UnitTests
 
             Assert.DoesNotThrow(() => sut.Post(1).Wait());
         }
+
+        [Test]
+        public void Exceptions()
+        {
+            Assert.Throws<ArgumentNullException>(() => Api.Rest().New<IFoo>(null));
+        }
     }
 
     public class TestClient : RestClient
