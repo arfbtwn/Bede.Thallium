@@ -31,19 +31,57 @@ namespace Bede.Thallium
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool is_enumKV(Type type)
         {
-            if (null == type) return false;
+            var ie = ienum(type);
 
-            if (!type.IsGenericType) return false;
+            if (null == ie) return false;
 
-            var def = type.GetGenericTypeDefinition();
+            var arg = ie.GetGenericArguments()[0];
 
-            if (IEnum != def) return false;
+            if (!arg.IsGenericType) return false;
 
-            var arg = type.GetGenericArguments()[0];
-
-            def = arg.GetGenericTypeDefinition();
+            var def = arg.GetGenericTypeDefinition();
 
             return KvP == def;
+        }
+
+        static Type ienum(Type type)
+        {
+            if (type == null || type == typeof(string))
+            {
+                return null;
+            }
+
+            if (type.IsArray)
+            {
+                return IEnum.MakeGenericType(type.GetElementType());
+            }
+
+            if (type.IsGenericType)
+            {
+                foreach (var arg in type.GetGenericArguments())
+                {
+                    var target = IEnum.MakeGenericType(arg);
+
+                    if (target.IsAssignableFrom(type))
+                    {
+                        return target;
+                    }
+                }
+            }
+
+            foreach (var i in type.GetInterfaces())
+            {
+                var ie = ienum(i);
+
+                if (null == ie)
+                {
+                    continue;
+                }
+
+                return ie;
+            }
+
+            return ienum(type.BaseType);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
