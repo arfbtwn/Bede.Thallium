@@ -16,6 +16,43 @@ namespace Bede.Thallium.UnitTests
         static readonly DateTimeOffset Offset = DateTimeOffset.UtcNow;
 
         [Test]
+        public void Nested()
+        {
+            const string gen1 = "{?nested}";
+            const string gen2 = "{?nested*}";
+
+            var nested3 = new List<object> { "foo", "bar", new List<object> { "baz" } };
+
+            var nested2 = new Dictionary<string, object>
+            {
+                { "foobar", new [] { "bar", "foo" } }
+            };
+
+            var nested1 = new Dictionary<string, object>
+            {
+                { "foo", new [] { "foo", "bar" } },
+                { "bar", nested2 },
+                { "baz", nested3 }
+            };
+
+            var param = new Dictionary<string, object>
+            {
+                { "nested", nested1 }
+            };
+
+            const string expect1 = "?nested=foo,foo,bar,foobar,bar,foo,baz,foo,bar,baz";
+            const string expect2 = "?foo=foo,bar&foobar=bar,foo&baz=foo,bar,baz";
+
+            var sut = new Runtime();
+
+            var text1 = sut.Expand(gen1, param);
+            var text2 = sut.Expand(gen2, param);
+
+            Assert.AreEqual(expect1, text1);
+            Assert.AreEqual(expect2, text2);
+        }
+
+        [Test]
         public void Bytes()
         {
             const string gen = "{?bytes}";

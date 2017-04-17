@@ -33,6 +33,8 @@ namespace Bede.Thallium.Templating
 
         public bool IsNullOrEmpty => IsNull || IsEmpty;
 
+        public bool IsScalar      => IsString || !IsEnumerable;
+
         public bool IsString      => Object is string;
         public bool IsCollection  => Object is ICollection;
         public bool IsEnumerable  => Object is IEnumerable;
