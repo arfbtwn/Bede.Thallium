@@ -36,17 +36,17 @@ namespace Bede.Thallium.Templating
         public static Spec spec(StringBuilder var, out Var[] vars)
         {
             var op   = var[0];
-            var args = Map[0];
+            var spec = Map[0];
 
             switch(op)
             {
-                case '#':  args = Map[7]; goto case '\0';
-                case '&':  args = Map[6]; goto case '\0';
-                case '?':  args = Map[5]; goto case '\0';
-                case ';':  args = Map[4]; goto case '\0';
-                case '/':  args = Map[3]; goto case '\0';
-                case '.':  args = Map[2]; goto case '\0';
-                case '+':  args = Map[1]; goto case '\0';
+                case '#':  spec = Map[7]; goto case '\0';
+                case '&':  spec = Map[6]; goto case '\0';
+                case '?':  spec = Map[5]; goto case '\0';
+                case ';':  spec = Map[4]; goto case '\0';
+                case '/':  spec = Map[3]; goto case '\0';
+                case '.':  spec = Map[2]; goto case '\0';
+                case '+':  spec = Map[1]; goto case '\0';
                 case '\0':
                     var.Remove(0, 1);
                     break;
@@ -54,7 +54,7 @@ namespace Bede.Thallium.Templating
 
             vars = Var.Parse(var.ToString());
 
-            return args;
+            return spec;
         }
 
         /// <summary>
@@ -265,11 +265,24 @@ namespace Bede.Thallium.Templating
 
             foreach (var o in val.Enumerable)
             {
-                if (null == o) continue;
+                var meta = Meta(o);
+
+                if (meta.IsNullOrEmpty) continue;
 
                 builder.Append(first);
 
-                AppendObj(builder, o, allow);
+                if (meta.IsScalar)
+                {
+                    AppendObj(builder, meta.Object, allow);
+                }
+                else if (meta.IsDictionary || meta.IsEnumKV)
+                {
+                    Dict(builder, meta, sep, ',', '\0', allow);
+                }
+                else
+                {
+                    List(builder, meta, ',', allow);
+                }
 
                 first = sep.ToString();
             }
@@ -287,10 +300,22 @@ namespace Bede.Thallium.Templating
 
                 if (meta.IsNullOrEmpty) continue;
 
-                builder.Append(first);
-                builder.Append(name);
-
-                AppendObj(builder, meta.Object, allow);
+                if (meta.IsScalar)
+                {
+                    builder.Append(first);
+                    builder.Append(name);
+                    AppendObj(builder, meta.Object, allow);
+                }
+                else if (meta.IsDictionary || meta.IsEnumKV)
+                {
+                    Dict(builder, meta, sep, ',', '\0', allow);
+                }
+                else
+                {
+                    builder.Append(first);
+                    builder.Append(name);
+                    List(builder, meta, ',', allow);
+                }
 
                 first = sep.ToString();
             }
@@ -308,8 +333,29 @@ namespace Bede.Thallium.Templating
                 var key = Meta(o.Key);
                 var val = Meta(o.Value);
 
-                AppendObj(builder, key.Object, allow);
-                AppendValue(builder, val.Object, kvsep, ifemp, allow);
+                if (val.IsNullOrEmpty)
+                {
+                    AppendObj(builder, key.Object, allow);
+                    builder.Append(tos(ifemp));
+                    continue;
+                }
+
+                if (val.IsScalar)
+                {
+                    AppendObj(builder, key.Object, allow);
+                    builder.Append(tos(kvsep));
+                    AppendObj(builder, val.Object, allow);
+                }
+                else if (val.IsDictionary || val.IsEnumKV)
+                {
+                    Dict(builder, val, sep, kvsep, ifemp, allow);
+                }
+                else
+                {
+                    AppendObj(builder, key.Object, allow);
+                    builder.Append(tos(kvsep));
+                    List(builder, val, ',', allow);
+                }
 
                 first = sep.ToString();
             }
@@ -321,21 +367,6 @@ namespace Bede.Thallium.Templating
             var v = enc(fmt(o), allow);
 
             builder.Append(v);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AppendValue(StringBuilder builder, object value, char sep, char ifemp, bool allow)
-        {
-            var v = enc(fmt(value), allow);
-
-            if (0 == v.Length)
-            {
-                builder.Append(ifemp);
-            }
-            else
-            {
-                builder.Append(sep + v);
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
