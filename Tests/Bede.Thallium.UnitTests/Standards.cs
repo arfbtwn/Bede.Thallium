@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
 {
-    using NUnit.Framework;
+    using Templating;
 
     [TestFixture]
     class Standards
@@ -137,7 +138,7 @@ namespace Bede.Thallium.UnitTests
         [TestCaseSource(nameof(Cases))]
         public void Test(string template, string expected)
         {
-            var sut = new Rfc6570();
+            var sut = new Runtime();
 
             var res = sut.Expand(template, Params);
 
@@ -147,7 +148,7 @@ namespace Bede.Thallium.UnitTests
         [TestCaseSource(nameof(Cases))]
         public void New(string template, string expected)
         {
-            var sut = new Rfc6570_2(template);
+            var sut = new Compiled(template);
 
             var res = sut.Expand(Params);
 

@@ -5,11 +5,11 @@ namespace Bede.Thallium.Data
     /// <summary>
     /// A <see cref="bool"/> wrapper type with lowercase formatting
     /// </summary>
-    public sealed class Boolean
+    public sealed class Boolean : Pointer
     {
         readonly bool? _b;
 
-        Boolean(bool? b) { _b = b; }
+        Boolean(bool? b) : base(b) { _b = b; }
 
         public override string ToString()
         {

@@ -8,12 +8,12 @@ using System.Runtime.Serialization;
 
 namespace Bede.Thallium.Data
 {
-    public class Explode<T> : IEnumerable<KeyValuePair<string, object>>
+    public class Explode<T> : Pointer, IEnumerable<KeyValuePair<string, object>>
     {
         readonly T    _value;
         readonly Type _type;
 
-        public Explode(T value)
+        public Explode(T value) : base(value)
         {
             _value = value;
             _type  = value?.GetType();
