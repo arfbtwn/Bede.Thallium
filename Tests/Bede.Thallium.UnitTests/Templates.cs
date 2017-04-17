@@ -6,6 +6,7 @@ using NUnit.Framework;
 namespace Bede.Thallium.UnitTests
 {
     using Data;
+    using Templating;
 
     [TestFixture]
     public class Templates
@@ -19,7 +20,7 @@ namespace Bede.Thallium.UnitTests
         {
             const string gen = "{?bytes}";
 
-            var sut      = new Rfc6570();
+            var sut      = new Runtime();
             var param    = new Dictionary<string, object> { { "bytes", new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 } } };
 
             var expected = "?bytes=" + Uri.EscapeDataString("AQIDBAUGBwg=");
@@ -33,7 +34,7 @@ namespace Bede.Thallium.UnitTests
         {
             const string gen = "{?now}";
 
-            var sut      = new Rfc6570();
+            var sut      = new Runtime();
             var param    = new Dictionary<string, object>();
             var expected = (string) null;
             var text     = (string) null;
@@ -69,7 +70,7 @@ namespace Bede.Thallium.UnitTests
             Assert.AreEqual("bar", dict["Bar"]);
             Assert.AreEqual(Date,  dict["Foobar"]);
 
-            var rfc = new Rfc6570();
+            var rfc = new Runtime();
 
             var expected = "?Foo=1&Bar=bar&Foobar=" + Uri.EscapeDataString(Date.ToString("o"));
 

@@ -74,6 +74,7 @@
     <Compile Include="Clients\BaseClient.cs" />
     <Compile Include="Data\DateTime.cs" />
     <Compile Include="Data\Explode.cs" />
+    <Compile Include="Data\Pointer.cs" />
     <Compile Include="Formatting\FormUrlEncoder.cs" />
     <Compile Include="Formatting\NewtonsoftJsonFormatter.cs" />
     <Compile Include="Handlers\_Exception.cs" />
@@ -114,9 +115,13 @@
     <Compile Include="Introspection\Fluent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rfc2616.cs" />
-    <Compile Include="Rfc6570.cs" />
     <Compile Include="ExceptionKeys.cs" />
-    <Compile Include="Rfc6570_2.cs" />
+    <Compile Include="Templating\Meta.cs" />
+    <Compile Include="Templating\Spec.cs" />
+    <Compile Include="Templating\Runtime.cs" />
+    <Compile Include="Templating\Compiled.cs" />
+    <Compile Include="Templating\Var.cs" />
+    <Compile Include="Templating\Rfc6570.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Bede.Thallium.nuspec" />

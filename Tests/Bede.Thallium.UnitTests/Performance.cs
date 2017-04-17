@@ -5,6 +5,8 @@ using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
 {
+    using Templating;
+
     [Explicit]
     [TestFixture(1e3, 50)]
     [TestFixture(1e6, 10000)]
@@ -31,7 +33,7 @@ namespace Bede.Thallium.UnitTests
 
             for (var i = 0; i < _iterations; ++i)
             {
-                new Rfc6570().Expand(template, Standards.Params);
+                new Runtime().Expand(template, Standards.Params);
             }
 
             st.Stop();
@@ -42,7 +44,7 @@ namespace Bede.Thallium.UnitTests
         [TestCaseSource(nameof(Cases))]
         public void New(string template)
         {
-            var expander = new Rfc6570_2(template).Compile();
+            var expander = new Compiled(template).Compile();
 
             var st = Stopwatch.StartNew();
 

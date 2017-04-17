@@ -11,6 +11,7 @@ namespace Bede.Thallium.Clients
     using Content;
     using Formatting;
     using Handlers;
+    using Templating;
 
     using Params     = Dictionary<string, object>;
     using Handler    = HttpMessageHandler;
@@ -29,7 +30,7 @@ namespace Bede.Thallium.Clients
                                                  };
         internal static TimeSpan   Timeout    => TimeSpan.FromMinutes(2);
 
-        internal static Rfc6570_2  Expander(string path) => new Rfc6570_2(path);
+        internal static Compiled   Expander(string path) => new Compiled(path);
     }
 
     /// <summary>
@@ -37,7 +38,7 @@ namespace Bede.Thallium.Clients
     /// </summary>
     public abstract class SkeletonClient
     {
-        readonly Dictionary<string, Rfc6570_2> _expanders = new Dictionary<string, Rfc6570_2>();
+        readonly Dictionary<string, Compiled> _expanders = new Dictionary<string, Compiled>();
 
         /// <summary>
         /// The URI used by the client

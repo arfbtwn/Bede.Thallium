@@ -7,21 +7,21 @@ namespace Bede.Thallium.Data
     /// <summary>
     /// Base class for pre-specified <see cref="DateTimeOffset" /> formats
     /// </summary>
-    public class DateTimeFormat
+    public class DateTimeFormat : Pointer
     {
-        readonly DateTimeOffset? _time;
-        readonly string          _fmt;
+        readonly string _value;
 
-        public DateTimeFormat(DateTimeOffset? time, string format)
+        public DateTimeFormat(DateTimeOffset? offset, string format) : base(offset)
         {
-            _time = time;
-            _fmt  = format;
+            _value = offset?.ToString(format) ?? string.Empty;
         }
 
-        public sealed override string ToString()
+        public DateTimeFormat(DateTime? time, string format) : base(time)
         {
-            return _time?.ToString(_fmt) ?? string.Empty;
+            _value = time?.ToString(format) ?? string.Empty;
         }
+
+        public sealed override string ToString() => _value;
     }
 
     /// <summary>
@@ -30,6 +30,7 @@ namespace Bede.Thallium.Data
     public sealed class Iso : DateTimeFormat
     {
         Iso(DateTimeOffset? time) : base(time, "o") { }
+        Iso(DateTime?       time) : base(time, "o") { }
 
         public static implicit operator Iso(DateTimeOffset? value) => new Iso(value);
 
