@@ -5,12 +5,12 @@ using NUnit.Framework;
 
 namespace Bede.Thallium.UnitTests
 {
-    [TestFixture, Ignore("Demo")]
+    [TestFixture, Explicit("Demo")]
     class OAuth2
     {
         static IOAuth2 Sut()
         {
-            var client = Api.Rest().New<IOAuth2>(new Uri("http://ew1-dv01-501-ilb.ad.bedegaming.com:8888/core/"));
+            var client = Api.Rest().New<IOAuth2>(new Uri("http://localhost"));
 
             var rc = (RestClient) client;
 
