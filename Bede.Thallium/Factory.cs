@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -15,7 +14,7 @@ namespace Bede.Thallium
     using Content;
 
     using Params  = Dictionary<string, object>;
-    using TypeMap = ConcurrentDictionary<Ident, Type>;
+    using TypeMap = Dictionary<Ident, Type>;
     using Static  = Dictionary<string, string[]>;
     using Headers = Dictionary<ParameterInfo, string>;
     using Body    = Dictionary<ParameterInfo, ContentDescription>;
@@ -122,7 +121,21 @@ namespace Bede.Thallium
 
             var ident = Ident.Create(parent, target);
 
-            return Built.GetOrAdd(ident, i => Build(i, introspector));
+            Type type;
+            if (Built.TryGetValue(ident, out type))
+            {
+                return type;
+            }
+
+            lock(Built)
+            {
+                if (Built.TryGetValue(ident, out type))
+                {
+                    return type;
+                }
+
+                return Built[ident] = Build(ident, introspector);
+            }
         }
 
         Type Build(Ident ident, IIntrospect introspector)
