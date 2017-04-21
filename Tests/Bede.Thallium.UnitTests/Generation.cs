@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 using NUnit.Framework;
@@ -70,6 +71,25 @@ namespace Bede.Thallium.UnitTests
             var uri = new Uri("http://localhost");
 
             using (Api.Rest().New<IFoo>(uri)) { }
+        }
+
+        public void Concurrent()
+        {
+            IFoo api = null;
+
+            var tasks = new List<Task>();
+
+            for(var i = 0; i < 5; ++i)
+            {
+                tasks.Add(Task.Run(() =>
+                {
+                    Assert.DoesNotThrow(() => api = Api.Rest().New<IFoo>(new Uri("http://locahost")));
+                }));
+            }
+
+            Task.WaitAll(tasks.ToArray());
+
+            Assert.IsNotNull(api);
         }
 
         [Test]
