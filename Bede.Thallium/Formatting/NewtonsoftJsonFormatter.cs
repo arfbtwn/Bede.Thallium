@@ -19,36 +19,38 @@ namespace Bede.Thallium.Formatting
     /// </summary>
     public class NewtonsoftJsonFormatter : MediaTypeFormatter
     {
-        public NewtonsoftJsonFormatter()
+        readonly JsonSerializer _serializer;
+
+        public NewtonsoftJsonFormatter(JsonSerializer serializer)
         {
             SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json"));
             SupportedEncodings.Add(Encoding.UTF8);
+
+            _serializer = serializer;
+        }
+
+        public NewtonsoftJsonFormatter() : this(new JsonSerializer())
+        {
         }
 
         public override bool CanReadType (Type type) => true;
         public override bool CanWriteType(Type type) => true;
 
-        protected virtual object AsObject(string source, Type type) => JsonConvert.DeserializeObject(source, type);
-        protected virtual string AsString(object value,  Type type) => JsonConvert.SerializeObject(value);
+        public int BufferSize { get; set; } = 4096;
 
-        public sealed override async Task<object> ReadFromStreamAsync(Type             type,
-                                                                      Stream           readStream,
-                                                                      HttpContent      content,
-                                                                      IFormatterLogger formatterLogger)
+        [Obsolete]
+        protected virtual object AsObject(string source, Type type) => null;
+        [Obsolete]
+        protected virtual string AsString(object value,  Type type) => null;
+
+        public sealed override Task<object> ReadFromStreamAsync(Type             type,
+                                                                Stream           readStream,
+                                                                HttpContent      content,
+                                                                IFormatterLogger formatterLogger)
         {
-            using (var mem = new MemoryStream())
+            using (var sr = new StreamReader(readStream, Encoding.UTF8, false, BufferSize, true))
             {
-                await readStream.CopyToAsync(mem).Caf();
-
-                var bytes = new byte[mem.Length];
-
-                mem.Position = 0;
-
-                await mem.ReadAsync(bytes, 0, bytes.Length).Caf();
-
-                var encoded = Encoding.UTF8.GetString(bytes);
-
-                return AsObject(encoded, type);
+                return Task.FromResult(_serializer.Deserialize(sr, type));
             }
         }
 
@@ -58,9 +60,12 @@ namespace Bede.Thallium.Formatting
                                                        HttpContent      content,
                                                        TransportContext transportContext)
         {
-            var bytes = Encoding.UTF8.GetBytes(AsString(value, type));
+            using (var sw = new StreamWriter(writeStream, Encoding.UTF8, BufferSize, true))
+            {
+                _serializer.Serialize(sw, value, type);
+            }
 
-            return writeStream.WriteAsync(bytes, 0, bytes.Length);
+            return Task.FromResult(true);
         }
     }
 }
