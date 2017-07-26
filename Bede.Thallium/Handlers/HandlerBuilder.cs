@@ -44,5 +44,15 @@ namespace Bede.Thallium.Handlers
 
             return @this;
         }
+
+        public static BufferingHandler Buffer(this HttpMessageHandler @this)
+        {
+            return new BufferingHandler(@this);
+        }
+
+        public static BufferingHandler Buffer(this BufferingHandler @this)
+        {
+            return @this;
+        }
     }
 }
