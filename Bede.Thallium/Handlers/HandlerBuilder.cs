@@ -7,6 +7,17 @@ namespace Bede.Thallium.Handlers
 {
     public static class HandlerBuilder
     {
+        public static Throw Throw(this HttpMessageHandler @this, Action<Throw> setup = null)
+        {
+            return new Throw(@this);
+        }
+
+        public static Throw Throw(this Throw @this, Action<Throw> setup = null)
+        {
+            setup?.Invoke(@this);
+            return @this;
+        }
+
         public static ThrowOnFail ThrowOnFail(this HttpMessageHandler @this)
         {
             return new ThrowOnFail(@this);
@@ -26,8 +37,11 @@ namespace Bede.Thallium.Handlers
             return _;
         }
 
-        public static RecordingHandler Record(this RecordingHandler @this)
+        public static RecordingHandler Record(this RecordingHandler @this) => Record(@this, null);
+
+        public static RecordingHandler Record(this RecordingHandler @this, Action<RecordingHandler> setup = null)
         {
+            setup?.Invoke(@this);
             return @this;
         }
 
