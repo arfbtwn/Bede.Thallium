@@ -7,6 +7,7 @@ namespace Bede.Thallium.Data
     /// <summary>
     /// Base class for pre-specified <see cref="DateTimeOffset" /> formats
     /// </summary>
+    [Obsolete]
     public class DateTimeFormat : Pointer
     {
         readonly string _value;
@@ -25,15 +26,47 @@ namespace Bede.Thallium.Data
     }
 
     /// <summary>
+    /// An object that knows a date time format
+    /// </summary>
+    public interface IDateTimeFormat
+    {
+        string Format { get; }
+    }
+
+    /// <summary>
+    /// A generic date time formatter
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class DateTime<T> : Pointer where T : IDateTimeFormat, new()
+    {
+        static readonly string _f = new T().Format;
+
+        protected DateTime() { }
+
+        readonly string _value;
+
+        protected DateTime(DateTimeOffset? time) : base(time) { _value = time?.ToString(_f); }
+        protected DateTime(DateTime?       time) : base(time) { _value = time?.ToString(_f); }
+
+        public sealed override string ToString() => _value ?? string.Empty;
+
+        public static implicit operator DateTime<T>(DateTimeOffset? value) => new DateTime<T>(value);
+        public static implicit operator DateTime<T>(DateTime?       value) => new DateTime<T>(value);
+    }
+
+    /// <summary>
     /// Round robin format, &quot;o&quot;
     /// </summary>
-    public sealed class Iso : DateTimeFormat
+    public sealed class Iso : DateTime<Iso>, IDateTimeFormat
     {
-        Iso(DateTimeOffset? time) : base(time, "o") { }
-        Iso(DateTime?       time) : base(time, "o") { }
+        public Iso() { }
+
+        Iso(DateTimeOffset? time) : base(time) { }
+        Iso(DateTime?       time) : base(time) { }
+
+        public string Format { get; } = "o";
 
         public static implicit operator Iso(DateTimeOffset? value) => new Iso(value);
-
-        public static implicit operator Iso(DateTime? value)       => new Iso(value);
+        public static implicit operator Iso(DateTime?       value) => new Iso(value);
     }
 }

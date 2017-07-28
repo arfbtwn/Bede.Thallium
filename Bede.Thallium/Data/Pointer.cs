@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-#pragma warning disable 659, 1591
+#pragma warning disable 1591
 
 namespace Bede.Thallium.Data
 {
@@ -8,6 +8,8 @@ namespace Bede.Thallium.Data
     public abstract class Pointer
     {
         readonly object _value;
+
+        protected Pointer() { }
 
         protected Pointer(object value)
         {
