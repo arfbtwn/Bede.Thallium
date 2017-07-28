@@ -4,15 +4,18 @@ using System.Text;
 
 namespace Bede.Thallium.Templating
 {
-    using Params = IReadOnlyDictionary<string, object>;
+    using Params  = Dictionary <string, object>;
+    using IParams = IDictionary<string, object>;
 
     class Runtime : Rfc6570
     {
         protected readonly StringBuilder Builder  = new StringBuilder();
         protected readonly StringBuilder Variable = new StringBuilder();
 
-        public string Expand(string template, Params parameters)
+        public string Expand(string template, IParams parameters)
         {
+            parameters = new Params(parameters, WordComparer.Instance);
+
             Builder.Clear();
             var inV = false;
 
@@ -41,7 +44,7 @@ namespace Bede.Thallium.Templating
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void Expand(Params keys)
+        void Expand(IParams keys)
         {
             Var[] vars;
             var spec = Rfc6570.spec(Variable, out vars);

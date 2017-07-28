@@ -118,6 +118,7 @@
     <Compile Include="Rfc2616.cs" />
     <Compile Include="ExceptionKeys.cs" />
     <Compile Include="Soap\Soap.cs" />
+    <Compile Include="Templating\WordComparer.cs" />
     <Compile Include="Templating\Meta.cs" />
     <Compile Include="Templating\Spec.cs" />
     <Compile Include="Templating\Runtime.cs" />

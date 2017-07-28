@@ -116,6 +116,22 @@ namespace Bede.Thallium.UnitTests
             Assert.AreEqual(expected, text);
         }
 
+        [Test]
+        public void Fuzzy()
+        {
+            var sut = new Dictionary<string, string>(WordComparer.Instance)
+            {
+                { "foo",     "bar" },
+                { "bar^&*#", "foo" }
+            };
+
+            Assert.IsTrue(sut.ContainsKey("foo^*&*("));
+            Assert.AreEqual("bar", sut["foo^*&*("]);
+
+            Assert.IsTrue(sut.ContainsKey("bar"));
+            Assert.AreEqual("foo", sut["bar"]);
+        }
+
         class MyClass
         {
             public int      Foo    { get; set; } = 1;
