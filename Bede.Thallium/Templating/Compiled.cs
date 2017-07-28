@@ -6,13 +6,14 @@ using System.Threading;
 
 namespace Bede.Thallium.Templating
 {
-    using Params = IReadOnlyDictionary<string, object>;
+    using Params  = Dictionary <string, object>;
+    using IParams = IDictionary<string, object>;
 
     class Compiled : Rfc6570
     {
         abstract class Op
         {
-            public abstract void Expand(StringBuilder sb, Params args);
+            public abstract void Expand(StringBuilder sb, IParams args);
         }
 
         sealed class Append : Op
@@ -24,7 +25,7 @@ namespace Bede.Thallium.Templating
                 _frag = frag;
             }
 
-            public override void Expand(StringBuilder sb, Params args)
+            public override void Expand(StringBuilder sb, IParams args)
             {
                 sb.Append(_frag);
             }
@@ -155,7 +156,7 @@ namespace Bede.Thallium.Templating
                 _actions = actions.ToArray();
             }
 
-            public override void Expand(StringBuilder sb, Params args)
+            public override void Expand(StringBuilder sb, IParams args)
             {
                 var first = true;
 
@@ -239,8 +240,9 @@ namespace Bede.Thallium.Templating
             return this;
         }
 
-        public string Expand(Params parameters)
+        public string Expand(IParams parameters)
         {
+            parameters = new Params(parameters, WordComparer.Instance);
             Compile();
 
             var ops = _ops.Value;
