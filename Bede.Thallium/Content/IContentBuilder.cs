@@ -13,7 +13,7 @@ namespace Bede.Thallium.Content
     /// An interface defining quick methods of constructing HTTP content
     /// and doing it right
     /// </summary>
-    public interface IContentBuilder : IBuilder<HttpContent>
+    public interface IContentBuilder
     {
         /// <summary>
         /// Get the last content
@@ -78,5 +78,11 @@ namespace Bede.Thallium.Content
         /// </summary>
         /// <returns></returns>
         IContentBuilder Reduce();
+
+        /// <summary>
+        /// Returns a completed <see cref="HttpContent"/>
+        /// </summary>
+        /// <returns></returns>
+        HttpContent Build();
     }
 }

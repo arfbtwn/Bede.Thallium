@@ -3,12 +3,10 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 
-#pragma warning disable 1591
+#pragma warning disable 612, 1591
 
 namespace Bede.Thallium.Testing
 {
-    using Belt;
-
     /// <summary>
     /// Base interface for multi-case API building
     /// </summary>
@@ -43,19 +41,18 @@ namespace Bede.Thallium.Testing
         /// <typeparam name="TResult"></typeparam>
         /// <param name="op"></param>
         /// <returns></returns>
-        ITaskApis<T, TResult, IApis<T>> Cases<TResult>(Expression<Func<T, Task<TResult>>> op);
+        ITaskApis<T, TResult> Cases<TResult>(Expression<Func<T, Task<TResult>>> op);
     }
 
     /// <summary>
     /// Define the set of cases
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <typeparam name="TBack"></typeparam>
-    public interface ITaskApis<T, out TBack> : IBuilder<IApis<T>>, IBack<TBack>
+    public interface ITaskApis<T> : IBuilder<IApis<T>>
     {
-        ITaskApis<T, TBack> Good(HttpStatusCode code);
-        ITaskApis<T, TBack> Bad(HttpStatusCode code);
-        ITaskApis<T, TBack> Ugly(HttpStatusCode code);
+        ITaskApis<T> Good(HttpStatusCode code);
+        ITaskApis<T> Bad(HttpStatusCode code);
+        ITaskApis<T> Ugly(HttpStatusCode code);
     }
 
     /// <summary>
@@ -63,12 +60,11 @@ namespace Bede.Thallium.Testing
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="TResult"></typeparam>
-    /// <typeparam name="TBack"></typeparam>
-    public interface ITaskApis<T, in TResult, out TBack> : IBuilder<IApis<T>>, IBack<TBack>
+    public interface ITaskApis<T, in TResult> : IBuilder<IApis<T>>
     {
-        ITaskApis<T, TResult, TBack> Good(HttpStatusCode code, TResult result = default(TResult));
-        ITaskApis<T, TResult, TBack> Bad(HttpStatusCode code, TResult result = default(TResult));
-        ITaskApis<T, TResult, TBack> Ugly(HttpStatusCode code, TResult result = default(TResult));
+        ITaskApis<T, TResult> Good(HttpStatusCode code, TResult result = default(TResult));
+        ITaskApis<T, TResult> Bad(HttpStatusCode code, TResult result = default(TResult));
+        ITaskApis<T, TResult> Ugly(HttpStatusCode code, TResult result = default(TResult));
     }
 
     /// <summary>
@@ -99,13 +95,13 @@ namespace Bede.Thallium.Testing
             return new TaskApis<T, IApis<T>>(this, good, bad, ugly);
         }
 
-        public ITaskApis<T, TResult, IApis<T>> Cases<TResult>(Expression<Func<T, Task<TResult>>> op)
+        public ITaskApis<T, TResult> Cases<TResult>(Expression<Func<T, Task<TResult>>> op)
         {
             var good = _good.Case(op);
             var bad  = _bad .Case(op);
             var ugly = _ugly.Case(op);
 
-            return new TaskApis<T, TResult, IApis<T>>(this, good, bad, ugly);
+            return new TaskApis<T, TResult>(this, good, bad, ugly);
         }
 
         public override IApis<T> Build()
@@ -118,16 +114,15 @@ namespace Bede.Thallium.Testing
         }
     }
 
-    class Apis<T, TResult, TBack> : Builder<IApis<T>>, IBuilder<IApis<T>>, IBack<TBack>
+    class Apis<T, TResult> : Builder<IApis<T>>
         where T     : class
-        where TBack : IBuilder<IApis<T>>
     {
-        readonly TBack _back;
-        readonly ICaseBuilder<T, TResult, IApiBuilder<T>> _good, _bad, _ugly;
+        readonly Apis<T> _back;
+        readonly ICaseBuilder<T, TResult> _good, _bad, _ugly;
 
-        internal Apis(TBack back, ICaseBuilder<T, TResult, IApiBuilder<T>> good,
-                                  ICaseBuilder<T, TResult, IApiBuilder<T>> bad,
-                                  ICaseBuilder<T, TResult, IApiBuilder<T>> ugly)
+        internal Apis(Apis<T> back, ICaseBuilder<T, TResult> good,
+                                    ICaseBuilder<T, TResult> bad,
+                                    ICaseBuilder<T, TResult> ugly)
         {
             _back = back;
 
@@ -136,19 +131,19 @@ namespace Bede.Thallium.Testing
             _ugly = ugly;
         }
 
-        internal Apis<T, TResult, TBack> Good(HttpStatusCode code, TResult result = default(TResult))
+        internal Apis<T, TResult> Good(HttpStatusCode code, TResult result = default(TResult))
         {
             _good.Define(code, result);
             return this;
         }
 
-        internal Apis<T, TResult, TBack> Bad(HttpStatusCode code, TResult result = default(TResult))
+        internal Apis<T, TResult> Bad(HttpStatusCode code, TResult result = default(TResult))
         {
             _bad.Define(code, result);
             return this;
         }
 
-        internal Apis<T, TResult, TBack> Ugly(HttpStatusCode code, TResult result = default(TResult))
+        internal Apis<T, TResult> Ugly(HttpStatusCode code, TResult result = default(TResult))
         {
             _ugly.Define(code, result);
             return this;
@@ -158,67 +153,60 @@ namespace Bede.Thallium.Testing
         {
             return _back.Build();
         }
-
-        public TBack Back()
-        {
-            return _back;
-        }
     }
 
-    class TaskApis<T, TBack> : Apis<T, Task, TBack>, ITaskApis<T, TBack>
+    class TaskApis<T> : Apis<T, Task>, ITaskApis<T>
         where T     : class
-        where TBack : IBuilder<IApis<T>>
     {
-        internal TaskApis(TBack back, ICaseBuilder<T, Task, IApiBuilder<T>> good,
-                                      ICaseBuilder<T, Task, IApiBuilder<T>> bad,
-                                      ICaseBuilder<T, Task, IApiBuilder<T>> ugly)
+        internal TaskApis(Apis<T> back, ICaseBuilder<T, Task> good,
+                                        ICaseBuilder<T, Task> bad,
+                                        ICaseBuilder<T, Task> ugly)
             : base(back, good, bad, ugly)
         {
         }
 
-        public ITaskApis<T, TBack> Good(HttpStatusCode code)
+        public ITaskApis<T> Good(HttpStatusCode code)
         {
             Good(code, Task.FromResult(true));
             return this;
         }
 
-        public ITaskApis<T, TBack> Bad(HttpStatusCode code)
+        public ITaskApis<T> Bad(HttpStatusCode code)
         {
             Bad(code, Task.FromResult(true));
             return this;
         }
 
-        public ITaskApis<T, TBack> Ugly(HttpStatusCode code)
+        public ITaskApis<T> Ugly(HttpStatusCode code)
         {
             Ugly(code, Task.FromResult(true));
             return this;
         }
     }
 
-    class TaskApis<T, TResult, TBack> : Apis<T, Task<TResult>, TBack>, ITaskApis<T, TResult, TBack>
+    class TaskApis<T, TResult> : Apis<T, Task<TResult>>, ITaskApis<T, TResult>
         where T     : class
-        where TBack : IBuilder<IApis<T>>
     {
-        internal TaskApis(TBack back, ICaseBuilder<T, Task<TResult>, IApiBuilder<T>> good,
-                                      ICaseBuilder<T, Task<TResult>, IApiBuilder<T>> bad,
-                                      ICaseBuilder<T, Task<TResult>, IApiBuilder<T>> ugly)
+        internal TaskApis(Apis<T> back, ICaseBuilder<T, Task<TResult>> good,
+                                        ICaseBuilder<T, Task<TResult>> bad,
+                                        ICaseBuilder<T, Task<TResult>> ugly)
             : base(back, good, bad, ugly)
         {
         }
 
-        public ITaskApis<T, TResult, TBack> Good(HttpStatusCode code, TResult result = default(TResult))
+        public ITaskApis<T, TResult> Good(HttpStatusCode code, TResult result = default(TResult))
         {
             Good(code, Task.FromResult(result));
             return this;
         }
 
-        public ITaskApis<T, TResult, TBack> Bad(HttpStatusCode code, TResult result = default(TResult))
+        public ITaskApis<T, TResult> Bad(HttpStatusCode code, TResult result = default(TResult))
         {
             Bad(code, Task.FromResult(result));
             return this;
         }
 
-        public ITaskApis<T, TResult, TBack> Ugly(HttpStatusCode code, TResult result = default(TResult))
+        public ITaskApis<T, TResult> Ugly(HttpStatusCode code, TResult result = default(TResult))
         {
             Ugly(code, Task.FromResult(result));
             return this;

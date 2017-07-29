@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 
+#pragma warning disable 612
+
 namespace Bede.Thallium.Introspection
 {
     using Belt;
@@ -14,7 +16,7 @@ namespace Bede.Thallium.Introspection
     /// Builds the description for an API call
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IDescriptionBuilder<T> : IBack<IFluent<T>>
+    public interface IDescriptionBuilder<T>
     {
         /// <summary>
         /// Declare this description is for the given method
@@ -245,11 +247,6 @@ namespace Bede.Thallium.Introspection
 
             _desc.Static[name] = values.ToArray();
             return this;
-        }
-
-        public IFluent<T> Back()
-        {
-            return _back;
         }
     }
 }

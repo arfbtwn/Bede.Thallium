@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -174,7 +173,7 @@ namespace Bede.Thallium.Content
 
         public MethodInfo Build
         {
-            get { return typeof(IBuilder<HttpContent>).GetMethod("Build"); }
+            get { return Cbi.GetMethod("Build"); }
         }
     }
 }

@@ -60,7 +60,6 @@
     <Compile Include="Belt\AsyncExtensions.cs" />
     <Compile Include="Belt\CollectionExtensions.cs" />
     <Compile Include="Belt\ReflectionExtensions.cs" />
-    <Compile Include="Belt\Builder.cs" />
     <Compile Include="Api.cs" />
     <Compile Include="Api.Obsolete.cs">
       <DependentUpon>Api.cs</DependentUpon>

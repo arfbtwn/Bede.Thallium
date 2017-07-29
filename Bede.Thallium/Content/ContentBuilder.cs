@@ -27,11 +27,6 @@ namespace Bede.Thallium.Content
 
         public Type Type => typeof(HttpContent);
 
-        object IBuilder.Build()
-        {
-            return Build();
-        }
-
         public HttpContent Last()
         {
             return this[Count - 1];

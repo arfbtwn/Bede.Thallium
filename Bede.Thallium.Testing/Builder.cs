@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Bede.Thallium.Belt
+namespace Bede.Thallium.Testing
 {
     /// <summary>
     /// A base type for generic builder classes, implementing
@@ -72,18 +72,5 @@ namespace Bede.Thallium.Belt
         /// </summary>
         /// <returns></returns>
         new T Build();
-    }
-
-    /// <summary>
-    /// Marks a type with a link backwards
-    /// </summary>
-    /// <typeparam name="TBack"></typeparam>
-    public interface IBack<out TBack>
-    {
-        /// <summary>
-        /// Get the 'back' object
-        /// </summary>
-        /// <returns></returns>
-        TBack Back();
     }
 }

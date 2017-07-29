@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
+#pragma warning disable 612
+
 namespace Bede.Thallium.Introspection
 {
     using Belt;
@@ -45,7 +47,7 @@ namespace Bede.Thallium.Introspection
     /// A fluent introspector interface for an API type
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IFluent<T> : IBack<IFluent>
+    public interface IFluent<T>
     {
         /// <summary>
         /// Get the current map
@@ -85,7 +87,7 @@ namespace Bede.Thallium.Introspection
 
         public IFluent<T> Api<T>()
         {
-            return (IFluent<T>) _maps.Lookup(typeof(T), new Fluent<T>(this));
+            return (IFluent<T>) _maps.Lookup(typeof(T), new Fluent<T>());
         }
 
         public IFluent Include(IMap map)
@@ -118,13 +120,6 @@ namespace Bede.Thallium.Introspection
 
     class Fluent<T> : Map, IFluent<T>
     {
-        readonly IFluent _back;
-
-        public Fluent(IFluent back)
-        {
-            _back = back;
-        }
-
         public IMap Map => this;
 
         public IFluent<T> With(MethodInfo method, Description description)
@@ -132,11 +127,6 @@ namespace Bede.Thallium.Introspection
             this[method] = description;
 
             return this;
-        }
-
-        public IFluent Back()
-        {
-            return _back;
         }
     }
 }

@@ -52,6 +52,7 @@
     </Compile>
     <Compile Include="ApiBuilder.cs" />
     <Compile Include="Apis.cs" />
+    <Compile Include="Builder.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
