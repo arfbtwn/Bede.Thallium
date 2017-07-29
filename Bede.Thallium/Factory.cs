@@ -210,7 +210,7 @@ namespace Bede.Thallium
 
                 // Decide immediately if we can tail call from SendAsync
                 var thrmT = typeof(Task<HttpResponseMessage>);
-                var tail  = thrmT == method.ReturnType;
+                var tail  = thrmT == method.ReturnType || typeof(Task) == method.ReturnType;
                 var ctHM  = typeof(HttpMethod).GetConstructor(new [] { typeof(string) });
 
                 ilG.Emit(OpCodes.Ldarg_0);

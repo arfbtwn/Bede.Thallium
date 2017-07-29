@@ -54,16 +54,9 @@ namespace Bede.Thallium.UnitTests
 
         public void ObsoleteSyntax()
         {
-#pragma warning disable 612, 618
-            Api.Emit(typeof(IFoo));
-            Api.Emit(typeof(IFoo), typeof(RestClient));
-            Api.New<IFoo>("http://localhost");
-
-            Api<TestClient, ICrudApi<Ping>>.New("http://localhost");
-            Api<IFoo>.New("http://localhost");
-
+#pragma warning disable 618
             Api.On<TestClient>().New<ICrudApi<Ping>>("http://localhost");
-#pragma warning restore 612, 618
+#pragma warning restore 618
         }
 
         public void Syntax()

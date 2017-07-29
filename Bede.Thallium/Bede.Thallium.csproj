@@ -61,9 +61,6 @@
     <Compile Include="Belt\CollectionExtensions.cs" />
     <Compile Include="Belt\ReflectionExtensions.cs" />
     <Compile Include="Api.cs" />
-    <Compile Include="Api.Obsolete.cs">
-      <DependentUpon>Api.cs</DependentUpon>
-    </Compile>
     <Compile Include="Auth\Header.cs" />
     <Compile Include="Auth\Basic.cs" />
     <Compile Include="Auth\Bearer.cs" />
@@ -83,17 +80,11 @@
     <Compile Include="Auth\Authenticators.cs" />
     <Compile Include="Handlers\Throw.cs" />
     <Compile Include="IApi.cs" />
-    <Compile Include="IApi.Overloads.cs">
-      <DependentUpon>IApi.cs</DependentUpon>
-    </Compile>
     <Compile Include="Auth\IOAuth2.cs" />
     <Compile Include="Clients\SkeletonClient.cs" />
     <Compile Include="Clients\Configuration.cs" />
     <Compile Include="Clients\DynamicClient.cs" />
     <Compile Include="Clients\RestClient.cs" />
-    <Compile Include="Clients\RestClient.Obsolete.cs">
-      <DependentUpon>RestClient.cs</DependentUpon>
-    </Compile>
     <Compile Include="Content\ContentBuilder.cs" />
     <Compile Include="Content\ContentBuilderExtensions.cs" />
     <Compile Include="Content\IImp.cs" />
@@ -106,7 +97,6 @@
     <Compile Include="Handlers\ThrowOnFail.cs" />
     <Compile Include="I.cs" />
     <Compile Include="Attributes.cs" />
-    <Compile Include="Introspection\Adapter.cs" />
     <Compile Include="Introspection\AttributeInspection.cs" />
     <Compile Include="Introspection\DescriptionBuilder.cs" />
     <Compile Include="Introspection\FluentExtensions.cs" />

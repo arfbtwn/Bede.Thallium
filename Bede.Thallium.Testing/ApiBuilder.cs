@@ -4,47 +4,47 @@ using System.Net;
 using System.Threading.Tasks;
 using Moq;
 
-#pragma warning disable 612, 1591
+#pragma warning disable 1591
 
 namespace Bede.Thallium.Testing
 {
-    using Belt;
-
     /// <summary>
     /// Base interface for API building
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IApiBuilder<T> : IBuilder<T>
+    public interface IApiBuilder<T>
     {
         ICaseBuilder<T, TResult> Case<TResult>(Expression<Func<T, TResult>> op);
         ITaskBuilder<T> Case(Expression<Func<T, Task>> op);
         ITaskBuilder<T, TResult> Case<TResult>(Expression<Func<T, Task<TResult>>> op);
+
+        T Build();
     }
 
     /// <summary>
     /// Concrete API builder implementation
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class ApiBuilder<T> : Builder<T>, IApiBuilder<T> where T : class
+    public class ApiBuilder<T> : IApiBuilder<T> where T : class
     {
         readonly Mock<T> _mock = new Mock<T>();
 
         public ICaseBuilder<T, TResult> Case<TResult>(Expression<Func<T, TResult>> op)
         {
-            return new CaseBuilder<T, TResult>(this, _mock, op);
+            return new CaseBuilder<T, TResult>(_mock, op);
         }
 
         public ITaskBuilder<T, TResult> Case<TResult>(Expression<Func<T, Task<TResult>>> op)
         {
-            return new TaskBuilder<T, TResult>(this, _mock, op);
+            return new TaskBuilder<T, TResult>(_mock, op);
         }
 
         public ITaskBuilder<T> Case(Expression<Func<T, Task>> op)
         {
-            return new TaskBuilder<T>(this, _mock, op);
+            return new TaskBuilder<T>(_mock, op);
         }
 
-        public override T Build()
+        public T Build()
         {
             return _mock.Object;
         }
@@ -55,7 +55,7 @@ namespace Bede.Thallium.Testing
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="TResult"></typeparam>
-    public interface ICaseBuilder<out T, in TResult> : IBuilder<T>
+    public interface ICaseBuilder<out T, in TResult>
     {
         ICaseBuilder<T, TResult> Define(HttpStatusCode code, TResult result = default(TResult));
     }
@@ -79,16 +79,13 @@ namespace Bede.Thallium.Testing
         ITaskBuilder<T, TResult> Define(HttpStatusCode code, TResult result = default(TResult));
     }
 
-    class CaseBuilder<T, TResult> : Builder<T>, ICaseBuilder<T, TResult>
-        where T     : class
+    class CaseBuilder<T, TResult> : ICaseBuilder<T, TResult> where T : class
     {
-        readonly ApiBuilder<T> _back;
         readonly Mock<T> _mock;
         readonly Expression<Func<T, TResult>> _op;
 
-        public CaseBuilder(ApiBuilder<T> back, Mock<T> mock, Expression<Func<T, TResult>> op)
+        public CaseBuilder(Mock<T> mock, Expression<Func<T, TResult>> op)
         {
-            _back = back;
             _mock = mock;
             _op   = op;
         }
@@ -99,17 +96,11 @@ namespace Bede.Thallium.Testing
 
             return this;
         }
-
-        public override T Build()
-        {
-            return _back.Build();
-        }
     }
 
-    class TaskBuilder<T> : CaseBuilder<T, Task>, ITaskBuilder<T>
-        where T     : class
+    class TaskBuilder<T> : CaseBuilder<T, Task>, ITaskBuilder<T> where T : class
     {
-        public TaskBuilder(ApiBuilder<T> back, Mock<T> mock, Expression<Func<T, Task>> op) : base(back, mock, op) { }
+        public TaskBuilder(Mock<T> mock, Expression<Func<T, Task>> op) : base(mock, op) { }
 
         public ITaskBuilder<T> Define(HttpStatusCode code)
         {
@@ -119,10 +110,9 @@ namespace Bede.Thallium.Testing
         }
     }
 
-    class TaskBuilder<T, TResult> : CaseBuilder<T, Task<TResult>>, ITaskBuilder<T, TResult>
-        where T     : class
+    class TaskBuilder<T, TResult> : CaseBuilder<T, Task<TResult>>, ITaskBuilder<T, TResult> where T : class
     {
-        public TaskBuilder(ApiBuilder<T> back, Mock<T> mock, Expression<Func<T, Task<TResult>>> op) : base(back, mock, op) { }
+        public TaskBuilder(Mock<T> mock, Expression<Func<T, Task<TResult>>> op) : base(mock, op) { }
 
         public ITaskBuilder<T, TResult> Define(HttpStatusCode code, TResult result = default(TResult))
         {

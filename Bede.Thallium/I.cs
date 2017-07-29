@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -10,24 +9,9 @@ using System.Reflection.Emit;
 namespace Bede.Thallium
 {
     using Belt;
-    using Introspection;
-
-    using Call = Tuple<
-                       HttpMethod,
-                       string,
-                       Dictionary<ParameterInfo, string>,
-                       ParameterInfo,
-                       Dictionary<string, string[]>
-                      >;
 
     static class I
     {
-        [Obsolete]
-        internal static Call Introspect(MethodInfo method)
-        {
-            return new AttributeInspection(method).V1();
-        }
-
         internal static IEnumerable<Type> Declaring(this Type type)
         {
             while(null != type.DeclaringType)

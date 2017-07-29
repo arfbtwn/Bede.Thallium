@@ -205,17 +205,6 @@ namespace Bede.Thallium.Clients
         /// <summary>
         /// Unwrap incoming async message
         /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        [Obsolete]
-        protected Task<HttpResponseMessage> Return(Task<HttpResponseMessage> message)
-        {
-            return message;
-        }
-
-        /// <summary>
-        /// Unwrap incoming async message
-        /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="message"></param>
         /// <returns></returns>
@@ -229,17 +218,6 @@ namespace Bede.Thallium.Clients
         }
 
         /// <summary>
-        /// Handle success, no op
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        [Obsolete]
-        protected virtual Task Success(HttpResponseMessage msg)
-        {
-            return Task.FromResult(true);
-        }
-
-        /// <summary>
         /// Handle success
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -248,22 +226,6 @@ namespace Bede.Thallium.Clients
         protected virtual Task<T> Success<T>(HttpResponseMessage msg)
         {
             return msg.Content.ReadAsAsync<T>(Formatters ?? Default.Formatters);
-        }
-
-        /// <summary>
-        /// Handle failure
-        /// </summary>
-        /// <remarks>
-        /// The default implementation throws an <see cref="HttpRequestException" />
-        /// with a request summary and response content for its message and a set of
-        /// keys inserted into its data collection defined by <see cref="ExceptionKeys"/>
-        /// </remarks>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        [Obsolete]
-        protected virtual Task Fail(HttpResponseMessage msg)
-        {
-            return Task.FromResult(false);
         }
 
         /// <summary>

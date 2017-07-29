@@ -89,21 +89,6 @@ namespace Bede.Thallium.Introspection
             }
         }
 
-#pragma warning disable 612
-        public Descriptor V1()
-        {
-            return new Descriptor
-            {
-                Verb     = Verb?.Verb,
-                Template = string.Join("/", Route),
-                Body     = Body.First(),
-                Headers  = Headers.ToDictionary(x => x, HeaderName),
-                Static   = Static.ToLookup(x => x.Name, x => x.Value)
-                                 .ToDictionary(x => x.Key, group => group.ToArray())
-            };
-        }
-#pragma warning restore 612
-
         public Description V2()
         {
             return new Description

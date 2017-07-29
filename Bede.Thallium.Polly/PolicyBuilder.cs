@@ -44,64 +44,6 @@ namespace Bede.Thallium.Polly
             return FromTicks((long) (SlotTime.Ticks * (Math.Pow(2, attempt) - 1)));
         }
 
-        static bool IsUnknown(Exception e) => true;
-
-        static bool IsClient(HttpRequestException e) => e.Code().IsClientError();
-
-        static bool IsServer(HttpRequestException e) => e.Code().IsServerError();
-
-        [Obsolete]
-        public static RetryHandler<E> WaitAndRetry<E>(this Handler       @this,
-                                                           Func<E, bool>  predicate,
-                                                           int?           attempts  = null,
-                                                           Backoff        backoff   = null)
-            where E : Exception
-        {
-            return new RetryHandler<E>(@this, predicate, attempts ?? Three, backoff ?? Exponential);
-        }
-
-        [Obsolete]
-        public static CircuitBreakHandler<E> CircuitBreak<E>(this Handler       @this,
-                                                                  Func<E, bool>  predicate,
-                                                                  int?           limit     = null,
-                                                                  TimeSpan?      rest      = null)
-            where E : Exception
-        {
-            return new CircuitBreakHandler<E>(@this, predicate, limit ?? Five, rest ?? OneMinute);
-        }
-
-        [Obsolete]
-        public static RetryHandler<Exception> RetryOnUnknown(this Handler @this,
-                                                                  int?     attempts = null,
-                                                                  Backoff  backoff  = null)
-        {
-            return WaitAndRetry<Exception>(@this, IsUnknown, attempts, backoff);
-        }
-
-        [Obsolete]
-        public static CircuitBreakHandler<Exception> BreakOnUnknown(this Handler   @this,
-                                                                         int?       limit = null,
-                                                                         TimeSpan?  rest  = null)
-        {
-            return CircuitBreak<Exception>(@this, IsUnknown, limit, rest);
-        }
-
-        [Obsolete]
-        public static RetryHandler<HttpRequestException> RetryOnServerError(this Handler @this,
-                                                                                 int?     attempts = null,
-                                                                                 Backoff  backoff  = null)
-        {
-            return WaitAndRetry<HttpRequestException>(@this, IsServer, attempts, backoff);
-        }
-
-        [Obsolete]
-        public static CircuitBreakHandler<HttpRequestException> BreakOnClientError(this Handler   @this,
-                                                                                        int?       limit = null,
-                                                                                        TimeSpan?  rest  = null)
-        {
-            return CircuitBreak<HttpRequestException>(@this, IsClient, limit, rest);
-        }
-
         /// <summary>
         /// Configures a <see cref="ResponseHandler"/> to respond to any of the specified status codes
         /// </summary>

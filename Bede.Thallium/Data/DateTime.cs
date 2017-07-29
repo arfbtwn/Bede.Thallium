@@ -5,27 +5,6 @@
 namespace Bede.Thallium.Data
 {
     /// <summary>
-    /// Base class for pre-specified <see cref="DateTimeOffset" /> formats
-    /// </summary>
-    [Obsolete]
-    public class DateTimeFormat : Pointer
-    {
-        readonly string _value;
-
-        public DateTimeFormat(DateTimeOffset? offset, string format) : base(offset)
-        {
-            _value = offset?.ToString(format) ?? string.Empty;
-        }
-
-        public DateTimeFormat(DateTime? time, string format) : base(time)
-        {
-            _value = time?.ToString(format) ?? string.Empty;
-        }
-
-        public sealed override string ToString() => _value;
-    }
-
-    /// <summary>
     /// An object that knows a date time format
     /// </summary>
     public interface IDateTimeFormat

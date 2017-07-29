@@ -1,5 +1,3 @@
-using System;
-
 namespace Bede.Thallium.Introspection
 {
     /// <summary>
@@ -105,31 +103,5 @@ namespace Bede.Thallium.Introspection
         {
             return default(T);
         }
-
-        /// <summary>
-        /// For explicit conversion of the generic parameter type
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="p"></param>
-        /// <returns></returns>
-        [Obsolete]
-        public static T Done<T>(this P<T> p) => p;
-
-        /// <summary>
-        /// Avoids compliation failure
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="p"></param>
-        /// <returns></returns>
-        [Obsolete]
-        public static T Done<T>(this T p) => p;
-    }
-
-#pragma warning disable 1591
-
-    [Obsolete]
-    public class P<T>
-    {
-        public static implicit operator T(P<T> p) => default(T);
     }
 }

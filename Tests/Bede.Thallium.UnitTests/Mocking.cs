@@ -17,17 +17,19 @@ namespace Bede.Thallium.UnitTests
         [Test]
         public void Throws()
         {
-            var sut = new Apis<IApi>()
+            var sut = new Apis<IApi>();
+
+            sut
                 .Cases(x => x.Foo())
                     .Good(HttpStatusCode.OK)
                     .Bad (HttpStatusCode.NotFound)
-                    .Ugly(HttpStatusCode.InternalServerError)
-                    .Build()
+                    .Ugly(HttpStatusCode.InternalServerError);
+
+            sut
                 .Cases(x => x.Bar())
                     .Good(HttpStatusCode.OK)
                     .Bad (HttpStatusCode.NotFound)
-                    .Ugly(HttpStatusCode.InternalServerError)
-                    .Build();
+                    .Ugly(HttpStatusCode.InternalServerError);
 
             Assert.DoesNotThrowAsync(async () => await sut.Good.Foo());
             Assert.DoesNotThrowAsync(async () => await sut.Good.Bar());

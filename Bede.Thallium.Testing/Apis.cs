@@ -11,7 +11,7 @@ namespace Bede.Thallium.Testing
     /// Base interface for multi-case API building
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IApis<T> : IBuilder<IApis<T>>
+    public interface IApis<T>
     {
         /// <summary>
         /// Good, or working, version of the API
@@ -33,7 +33,7 @@ namespace Bede.Thallium.Testing
         /// </summary>
         /// <param name="op"></param>
         /// <returns></returns>
-        ITaskApis<T, IApis<T>> Cases(Expression<Func<T, Task>> op);
+        ITaskApis<T> Cases(Expression<Func<T, Task>> op);
 
         /// <summary>
         /// Create a set of cases for an operation
@@ -48,7 +48,7 @@ namespace Bede.Thallium.Testing
     /// Define the set of cases
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ITaskApis<T> : IBuilder<IApis<T>>
+    public interface ITaskApis<T>
     {
         ITaskApis<T> Good(HttpStatusCode code);
         ITaskApis<T> Bad(HttpStatusCode code);
@@ -60,7 +60,7 @@ namespace Bede.Thallium.Testing
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="TResult"></typeparam>
-    public interface ITaskApis<T, in TResult> : IBuilder<IApis<T>>
+    public interface ITaskApis<T, in TResult>
     {
         ITaskApis<T, TResult> Good(HttpStatusCode code, TResult result = default(TResult));
         ITaskApis<T, TResult> Bad(HttpStatusCode code, TResult result = default(TResult));
@@ -71,7 +71,7 @@ namespace Bede.Thallium.Testing
     /// Concrete multi-case API builder implementation
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Apis<T> : Builder<IApis<T>>, IApis<T> where T : class
+    public class Apis<T> : IApis<T> where T : class
     {
         readonly IApiBuilder<T> _good, _bad, _ugly;
 
@@ -82,17 +82,17 @@ namespace Bede.Thallium.Testing
             _ugly = new ApiBuilder<T>();
         }
 
-        public T Good { get; internal set; }
-        public T Bad  { get; internal set; }
-        public T Ugly { get; internal set; }
+        public T Good => _good.Build ();
+        public T Bad  => _bad .Build ();
+        public T Ugly => _ugly.Build ();
 
-        public ITaskApis<T, IApis<T>> Cases(Expression<Func<T, Task>> op)
+        public ITaskApis<T> Cases(Expression<Func<T, Task>> op)
         {
             var good = _good.Case(op);
             var bad  = _bad .Case(op);
             var ugly = _ugly.Case(op);
 
-            return new TaskApis<T, IApis<T>>(this, good, bad, ugly);
+            return new TaskApis<T>(good, bad, ugly);
         }
 
         public ITaskApis<T, TResult> Cases<TResult>(Expression<Func<T, Task<TResult>>> op)
@@ -101,31 +101,18 @@ namespace Bede.Thallium.Testing
             var bad  = _bad .Case(op);
             var ugly = _ugly.Case(op);
 
-            return new TaskApis<T, TResult>(this, good, bad, ugly);
-        }
-
-        public override IApis<T> Build()
-        {
-            Good = _good.Build();
-            Bad  = _bad. Build();
-            Ugly = _ugly.Build();
-
-            return this;
+            return new TaskApis<T, TResult>(good, bad, ugly);
         }
     }
 
-    class Apis<T, TResult> : Builder<IApis<T>>
-        where T     : class
+    class Apis<T, TResult> where T : class
     {
-        readonly Apis<T> _back;
         readonly ICaseBuilder<T, TResult> _good, _bad, _ugly;
 
-        internal Apis(Apis<T> back, ICaseBuilder<T, TResult> good,
-                                    ICaseBuilder<T, TResult> bad,
-                                    ICaseBuilder<T, TResult> ugly)
+        internal Apis(ICaseBuilder<T, TResult> good,
+                      ICaseBuilder<T, TResult> bad,
+                      ICaseBuilder<T, TResult> ugly)
         {
-            _back = back;
-
             _good = good;
             _bad  = bad;
             _ugly = ugly;
@@ -148,20 +135,14 @@ namespace Bede.Thallium.Testing
             _ugly.Define(code, result);
             return this;
         }
-
-        public override IApis<T> Build()
-        {
-            return _back.Build();
-        }
     }
 
-    class TaskApis<T> : Apis<T, Task>, ITaskApis<T>
-        where T     : class
+    class TaskApis<T> : Apis<T, Task>, ITaskApis<T> where T : class
     {
-        internal TaskApis(Apis<T> back, ICaseBuilder<T, Task> good,
-                                        ICaseBuilder<T, Task> bad,
-                                        ICaseBuilder<T, Task> ugly)
-            : base(back, good, bad, ugly)
+        internal TaskApis(ICaseBuilder<T, Task> good,
+                          ICaseBuilder<T, Task> bad,
+                          ICaseBuilder<T, Task> ugly)
+            : base(good, bad, ugly)
         {
         }
 
@@ -184,13 +165,12 @@ namespace Bede.Thallium.Testing
         }
     }
 
-    class TaskApis<T, TResult> : Apis<T, Task<TResult>>, ITaskApis<T, TResult>
-        where T     : class
+    class TaskApis<T, TResult> : Apis<T, Task<TResult>>, ITaskApis<T, TResult> where T : class
     {
-        internal TaskApis(Apis<T> back, ICaseBuilder<T, Task<TResult>> good,
-                                        ICaseBuilder<T, Task<TResult>> bad,
-                                        ICaseBuilder<T, Task<TResult>> ugly)
-            : base(back, good, bad, ugly)
+        internal TaskApis(ICaseBuilder<T, Task<TResult>> good,
+                          ICaseBuilder<T, Task<TResult>> bad,
+                          ICaseBuilder<T, Task<TResult>> ugly)
+            : base(good, bad, ugly)
         {
         }
 

@@ -38,11 +38,6 @@ namespace Bede.Thallium.Formatting
 
         public int BufferSize { get; set; } = 4096;
 
-        [Obsolete]
-        protected virtual object AsObject(string source, Type type) => null;
-        [Obsolete]
-        protected virtual string AsString(object value,  Type type) => null;
-
         public sealed override Task<object> ReadFromStreamAsync(Type             type,
                                                                 Stream           readStream,
                                                                 HttpContent      content,
