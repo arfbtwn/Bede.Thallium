@@ -28,10 +28,15 @@ namespace Bede.Thallium.Polly
             return _predicates.DefaultIfEmpty(Always).Any(x => x(msg));
         }
 
-        protected PolicyBuilder<HttpResponseMessage> Builder { get; set; }
+        protected PolicyBuilder<HttpResponseMessage> Builder { get; }
 
         protected Policy<HttpResponseMessage> Policy { get; set; }
 
+        /// <summary>
+        /// Adds a predicate to the set that will trigger the execution policy
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         public ResponseHandler On(Predicate predicate)
         {
             _predicates.Add(predicate);

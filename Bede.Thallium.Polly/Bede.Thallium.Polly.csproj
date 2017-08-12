@@ -55,7 +55,6 @@
     <Compile Include="CircuitBreakHandler.cs" />
     <Compile Include="ResponseHandler.cs" />
     <Compile Include="PolicyBuilder.cs" />
-    <Compile Include="PolicyHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RetryHandler.cs" />
   </ItemGroup>
