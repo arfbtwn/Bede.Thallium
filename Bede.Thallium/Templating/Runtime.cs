@@ -7,7 +7,7 @@ namespace Bede.Thallium.Templating
     using Params  = Dictionary <string, object>;
     using IParams = IDictionary<string, object>;
 
-    class Runtime : Rfc6570
+    class Runtime : Rfc6570, IRfc6570
     {
         protected readonly StringBuilder Builder  = new StringBuilder();
         protected readonly StringBuilder Variable = new StringBuilder();

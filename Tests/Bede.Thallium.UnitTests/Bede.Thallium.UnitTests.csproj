@@ -62,6 +62,7 @@
     <Compile Include="..\..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Behaviours.cs" />
     <Compile Include="Generation.cs" />
     <Compile Include="Handlers.cs" />
     <Compile Include="Introspection.cs" />

@@ -9,6 +9,16 @@ namespace Bede.Thallium.Templating
     using Params  = Dictionary <string, object>;
     using IParams = IDictionary<string, object>;
 
+    class Compiler : IRfc6570
+    {
+        Compiled _template;
+
+        public string Expand(string template, IParams parameters)
+        {
+            return (_template ?? (_template = new Compiled(template))).Expand(parameters);
+        }
+    }
+
     class Compiled : Rfc6570
     {
         abstract class Op

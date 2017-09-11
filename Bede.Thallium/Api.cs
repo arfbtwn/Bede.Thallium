@@ -76,6 +76,7 @@ namespace Bede.Thallium
         /// <summary>
         /// Gets or Sets the <see cref="IImp" />
         /// </summary>
+        [Obsolete]
         public static IImp Imp
         {
             get { return Factory.Imp;  }

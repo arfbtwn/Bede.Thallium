@@ -31,7 +31,7 @@ namespace Bede.Thallium.Content
 
             var ct = Headers.ContentType;
 
-            _f = null == ct ? _c.First(x => x.CanWriteType(_t)) : _c.FindWriter(_t, ct);
+            _f = null == ct ? _c.FirstOrDefault(x => x.CanWriteType(_t)) : _c.FindWriter(_t, ct);
 
             Assertion.HasFormatter(_f, _t, ct);
 
@@ -40,6 +40,8 @@ namespace Bede.Thallium.Content
 
         protected override Task SerializeToStreamAsync(Stream stream, TransportContext context)
         {
+            Ready();
+
             return _f.WriteToStreamAsync(_t, _v, stream, this, context);
         }
 

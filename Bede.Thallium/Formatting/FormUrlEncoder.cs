@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
 #pragma warning disable 1591
+
 namespace Bede.Thallium.Formatting
 {
     using Belt;
@@ -19,66 +17,42 @@ namespace Bede.Thallium.Formatting
     /// A media type formatter that can form encode sequences
     /// of key value pairs
     /// </summary>
-    public sealed class FormUrlEncoder : MediaTypeFormatter
+    public class FormUrlEncoder : FormUrlEncodedMediaTypeFormatter
     {
-        public FormUrlEncoder()
+        public static readonly Type Supported = typeof(IEnumerable<KeyValuePair<string, string>>);
+
+        public int WriteBufferSize { get; set; } = 4096;
+
+        public override bool CanWriteType(Type type) => Supported.IsAssignableFrom(type);
+
+        protected virtual string Escape(string input) => Uri.EscapeUriString(input);
+
+        public async override Task WriteToStreamAsync(Type             type,
+                                                      object           value,
+                                                      Stream           writeStream,
+                                                      HttpContent      content,
+                                                      TransportContext transportContext)
         {
-            SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/x-www-form-urlencoded"));
-            SupportedEncodings.Add(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
-            SupportedEncodings.Add(new UnicodeEncoding(bigEndian: false, byteOrderMark: false, throwOnInvalidBytes: true));
-        }
-
-        public override bool CanReadType(Type type)
-        {
-            return false;
-        }
-
-        public override bool CanWriteType(Type type)
-        {
-            if (typeof(IDictionary).IsAssignableFrom(type))
-            {
-                return true;
-            }
-
-            var i = type.GetInterfaces().FirstOrDefault(x => x.HasGenericDefinition(typeof(IEnumerable<>)));
-
-            return null != i && i.GetGenericArguments()[0].HasGenericDefinition(typeof(KeyValuePair<,>));
-        }
-
-        public override Task WriteToStreamAsync(Type             type,
-                                                object           value,
-                                                Stream           writeStream,
-                                                HttpContent      content,
-                                                TransportContext transportContext)
-        {
-            var o = (IEnumerable) value;
+            var o = (IEnumerable<KeyValuePair<string, string>>) value;
 
             var first = true;
 
-            var sb = new StringBuilder();
-
-            foreach (dynamic kv in o)
+            using (var writer = new StreamWriter(writeStream, Encoding.UTF8, WriteBufferSize, true))
             {
-                if (!first)
+                foreach (var kv in o)
                 {
-                    sb.Append('&');
+                    if (!first)
+                    {
+                        await writer.WriteAsync('&').Caf();
+                    }
+
+                    await writer.WriteAsync(Escape(kv.Key)).Caf();
+                    await writer.WriteAsync('=').Caf();
+                    await writer.WriteAsync(Escape(kv.Value ?? string.Empty)).Caf();
+
+                    first = false;
                 }
-
-                sb.Append(Escape(kv.Key.ToString()));
-                sb.Append('=');
-                sb.Append(Escape((kv.Value ?? string.Empty).ToString()));
-
-                first = false;
             }
-
-            var buf = Encoding.ASCII.GetBytes(sb.ToString());
-
-            return writeStream.WriteAsync(buf, 0, buf.Length);
-        }
-
-        string Escape(string input)
-        {
-            return Uri.EscapeDataString(input);
         }
     }
 }

@@ -53,32 +53,6 @@ namespace Bede.Thallium
 
         }
 
-        static MethodInfo GetMethod(Type type, string name, Type[] genericTypes, Type[] parameterTypes)
-        {
-            parameterTypes = parameterTypes ?? EmpT;
-            genericTypes   = genericTypes   ?? EmpT;
-
-            var noGeneric = !genericTypes.Any();
-
-            return type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
-
-                .Where         (x => x.Name == name && (noGeneric ^ x.IsGenericMethodDefinition))
-                .Select        (x => MakeDefinition(x, genericTypes))
-                .FirstOrDefault(x => x.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameterTypes));
-        }
-
-        static MethodInfo MakeDefinition(MethodInfo x, Type[] genericTypes)
-        {
-            try
-            {
-                return x.IsGenericMethodDefinition ? x.MakeGenericMethod(genericTypes) : x;
-            }
-            catch (ArgumentException)
-            {
-                return x;
-            }
-        }
-
         static Type[] SendAsyncParams()
         {
             return new []
@@ -279,7 +253,11 @@ namespace Bede.Thallium
                     ilG.Emit(OpCodes.Call, madd);
                 }
 
-                var delM = GetMethod(parent, "SendAsync", null, SendAsyncParams());
+                var delM = parent.GetMethod(name:        "SendAsync",
+                                            bindingAttr: BindingFlags.NonPublic | BindingFlags.Instance,
+                                            binder:      null,
+                                            types:       SendAsyncParams(),
+                                            modifiers:   null);
                 // Build content
                 if (0 == bodyP.Length)
                 {
@@ -289,7 +267,7 @@ namespace Bede.Thallium
                 {
                     var imp = Imp;
 
-                    var ctb = typeof(SkeletonClient).GetMethod("ContentBuilder", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var ctb = parent.GetMethod("ContentBuilder", BindingFlags.NonPublic | BindingFlags.Instance);
                     ilG.Emit(OpCodes.Ldarg_0);
                     ilG.Emit(OpCodes.Callvirt, ctb);
 
@@ -320,9 +298,12 @@ namespace Bede.Thallium
                 // Convert return type if necessary
                 if (!tail)
                 {
-                    var conM = method.ReturnType.IsGenericType
-                        ? GetMethod(parent, "Return", method.ReturnType.GetGenericArguments(), new [] { thrmT })
-                        : GetMethod(parent, "Return", null,                                    new [] { thrmT });
+                    var conM = parent.GetMethod(name:        "Return",
+                                                bindingAttr: BindingFlags.NonPublic | BindingFlags.Instance,
+                                                binder:      null,
+                                                types:       new [] { thrmT },
+                                                modifiers:   null)
+                                     .MakeGenericMethod(method.ReturnType.GetGenericArguments());
 
                     ilG.Emit(OpCodes.Tailcall);
                     ilG.EmitCall(conM);

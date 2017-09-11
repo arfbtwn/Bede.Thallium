@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
@@ -10,8 +9,6 @@ using System.Net.Http.Headers;
 
 namespace Bede.Thallium.Content
 {
-    using Belt;
-
     public class ContentBuilder : List<HttpContent>, IContentBuilder
     {
         readonly MediaTypeFormatterCollection _formatters;
@@ -24,8 +21,6 @@ namespace Bede.Thallium.Content
         }
 
         public ContentBuilder() : this(new MediaTypeFormatterCollection()) { }
-
-        public Type Type => typeof(HttpContent);
 
         public HttpContent Last()
         {
@@ -130,11 +125,6 @@ namespace Bede.Thallium.Content
 
         public HttpContent Build()
         {
-            foreach (var c in this.OfType<ObjectContent>())
-            {
-                c.Ready();
-            }
-
             switch(Count)
             {
                 case 0: return null;

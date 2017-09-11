@@ -1,6 +1,8 @@
 ﻿#pragma warning disable 1591
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 
 namespace Bede.Thallium
@@ -44,7 +46,7 @@ namespace Bede.Thallium
     /// the runtime type name and upper cases it to get
     /// the HTTP verb
     /// </remarks>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(CIM)]
     public class VerbAttribute : RouteAttribute
     {
         public HttpMethod Verb { get; private set; }
@@ -64,28 +66,28 @@ namespace Bede.Thallium
         protected VerbAttribute() : this(string.Empty) { }
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(CIM)]
     public sealed class PostAttribute : VerbAttribute
     {
         public PostAttribute() { }
         public PostAttribute(string route) : base(route) { }
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(CIM)]
     public sealed class GetAttribute : VerbAttribute
     {
         public GetAttribute() { }
         public GetAttribute(string route) : base(route) { }
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(CIM)]
     public sealed class PutAttribute : VerbAttribute
     {
         public PutAttribute() { }
         public PutAttribute(string route) : base(route) { }
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(CIM)]
     public sealed class DeleteAttribute : VerbAttribute
     {
         public DeleteAttribute() { }
@@ -96,13 +98,24 @@ namespace Bede.Thallium
     /// Marks a parameter as body
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class BodyAttribute : Attribute { }
+    public class BodyAttribute : Attribute
+    {
+        protected virtual HttpContent Content(object value)
+        {
+            return new ObjectContent(value.GetType(), value, new JsonMediaTypeFormatter());
+        }
+
+        public virtual HttpContent Create(object value)
+        {
+            return null == value ? null : Content(value);
+        }
+    }
 
     /// <summary>
     /// Marks a member as a header with the given name
     /// </summary>
     [AttributeUsage(IPMP, AllowMultiple = true)]
-    public class HeaderAttribute : Attribute
+    public class HeaderAttribute : RequestAttribute
     {
         public string Name  { get; private set; }
         public string Value { get; private set; }
@@ -117,12 +130,23 @@ namespace Bede.Thallium
         {
             Value = value;
         }
-    }
 
-    [AttributeUsage(AttributeTargets.Method), Obsolete]
-    public class ContentTypeAttribute : HeaderAttribute
-    {
-        public ContentTypeAttribute(string type) : base("Content-Type", type) { }
+        public override void Request(HttpRequestMessage message)
+        {
+            if (null == Value) return;
+
+            message.Headers.Add(Name, Value);
+        }
+
+        public void Header(HttpHeaders headers, object value)
+        {
+            if (null == value) return;
+
+            var e = value as IEnumerable<string>;
+
+            if (null != e) headers.Add(Name, e);
+            else           headers.Add(Name, value.ToString());
+        }
     }
 
     public abstract class ContentHeaderAttribute : BodyAttribute
@@ -144,7 +168,6 @@ namespace Bede.Thallium
         public sealed override string Name
         {
             get { return "Content-Type"; }
-            set { throw new InvalidOperationException(); }
         }
     }
 
@@ -161,7 +184,6 @@ namespace Bede.Thallium
         public sealed override string Name
         {
             get { return "Content-Disposition"; }
-            set { throw new InvalidOperationException(); }
         }
     }
 
@@ -197,12 +219,16 @@ namespace Bede.Thallium
 
                     }.ToString();
             }
-            set { throw new InvalidOperationException(); }
         }
     }
 
+    public class RequestAttribute : Attribute
+    {
+        public virtual void Request(HttpRequestMessage message) { }
+    }
+
     [AttributeUsage(AttributeTargets.Method)]
-    public class MultipartAttribute : Attribute
+    public class MultipartAttribute : RequestAttribute
     {
         public MultipartAttribute() { }
 
@@ -216,15 +242,23 @@ namespace Bede.Thallium
         public string Boundary { get; set; }
     }
 
-    [AttributeUsage(IPMP)]
-    public sealed class FormUrlAttribute : TypeAttribute
+    public sealed class FormUrlAttribute : BodyAttribute
     {
-        public FormUrlAttribute() : base("application/x-www-form-urlencoded") { }
+        protected override HttpContent Content(object value)
+        {
+            return new FormUrlEncodedContent((IEnumerable<KeyValuePair<string, string>>) value);
+        }
     }
 
-    [AttributeUsage(IPMP)]
     public sealed class OctetAttribute : TypeAttribute
     {
-        public OctetAttribute() : base("application/octet-stream") { }
+        public int? Offset { get; set; }
+        public int? Length { get; set; }
+
+        protected override HttpContent Content(object value)
+        {
+            var b = (byte[]) value;
+            return new ByteArrayContent(b, Offset ?? 0, Length ?? b.Length);
+        }
     }
 }
