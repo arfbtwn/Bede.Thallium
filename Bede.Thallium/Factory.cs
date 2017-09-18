@@ -62,7 +62,7 @@ namespace Bede.Thallium
 
             return type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
 
-                .Where         (x => x.Name == name && (noGeneric ^ x.IsGenericMethodDefinition))
+                .Where         (x => x.Name == name && (noGeneric ^ x.IsGenericMethodDefinition) && x.GetGenericArguments().Length == genericTypes.Length)
                 .Select        (x => MakeDefinition(x, genericTypes))
                 .FirstOrDefault(x => x.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameterTypes));
         }
@@ -318,9 +318,17 @@ namespace Bede.Thallium
                 // Convert return type if necessary
                 if (!tail)
                 {
-                    var conM = method.ReturnType.IsGenericType
-                        ? GetMethod(parent, "Return", method.ReturnType.GetGenericArguments(), new [] { thrmT })
-                        : GetMethod(parent, "Return", null,                                    new [] { thrmT });
+                    Type[] genericArguments = null;
+                    if (method.ReturnType.IsGenericType)
+                    {
+                        genericArguments = method.ReturnType.GetGenericArguments();
+                        if (genericArguments.Length == 1 && genericArguments[0].GetGenericTypeDefinition() == typeof(Response<,>))
+                        {
+                            genericArguments = genericArguments[0].GetGenericArguments();
+                        }
+                    }
+
+                    var conM = GetMethod(parent, "Return", genericArguments, new[] { thrmT });
 
                     ilG.Emit(OpCodes.Tailcall);
                     ilG.EmitCall(conM);

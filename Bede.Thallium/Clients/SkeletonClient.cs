@@ -229,6 +229,32 @@ namespace Bede.Thallium.Clients
         }
 
         /// <summary>
+        /// Unwrap incoming async message
+        /// </summary>
+        /// <typeparam name="TSuccess"></typeparam>
+        /// <typeparam name="TFail"></typeparam>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        protected async Task<Response<TSuccess, TFail>> Return<TSuccess, TFail>(Task<HttpResponseMessage> message)
+        {
+            var msg = await message.Caf();
+
+            Response<TSuccess, TFail> response;
+            if (msg.IsSuccessStatusCode)
+            {
+                var result = await Success<TSuccess>(msg).Caf();
+                response = new Response<TSuccess, TFail>(msg.StatusCode, result);
+            }
+            else
+            {
+                var result = await Success<TFail>(msg).Caf();
+                response = new Response<TSuccess, TFail>(msg.StatusCode, result);
+            }
+
+            return response;
+        }
+
+        /// <summary>
         /// Handle success, no op
         /// </summary>
         /// <param name="msg"></param>
