@@ -115,6 +115,7 @@
     <Compile Include="Introspection\Simple.cs" />
     <Compile Include="Introspection\Fluent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Response.cs" />
     <Compile Include="Rfc2616.cs" />
     <Compile Include="ExceptionKeys.cs" />
     <Compile Include="Soap\Soap.cs" />
