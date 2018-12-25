@@ -1,4 +1,4 @@
-## Bede.Thallium
+## Bede.Thallium [![Build Status](https://travis-ci.com/arfbtwn/Bede.Thallium.svg?branch=master)](https://travis-ci.com/arfbtwn/Bede.Thallium)
 
 A dynamic and extensible ReST client library. Refer to the XML documentation
 after compilation for details.

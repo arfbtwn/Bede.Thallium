@@ -1,0 +1,5 @@
+language: csharp
+solution: Bede.Thallium.sln
+script:
+  - xbuild /p:Configuration=Release Bede.Thallium.sln
+  - mono ./packages/NUnit.ConsoleRunner.3.6.0/tools/nunit3-console.exe ./Tests/Bede.Thallium.UnitTests/bin/Release/Bede.Thallium.UnitTests.dll
