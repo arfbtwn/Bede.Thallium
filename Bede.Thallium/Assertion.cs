@@ -73,10 +73,9 @@ namespace Bede.Thallium
         {
             if (null == call)
             {
-                var name = method.Name;
-                var type = method.DeclaringType.Name;
+                var type = method.DeclaringType;
 
-                throw new InvalidOperationException(name + " on " + type + " has no call information");
+                throw new InvalidOperationException(method + " on " + type + " has no call information");
             }
 
             if (null == call.Verb) throw new InvalidOperationException("No HTTP verb: " + method.Name);
