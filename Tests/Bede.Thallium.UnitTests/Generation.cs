@@ -154,13 +154,23 @@ namespace Bede.Thallium.UnitTests
         {
             var sut = Api.Rest().New<IStaticHeader>(new Uri("http://localhost"), _server);
 
-            Assert.DoesNotThrow(() => sut.Post(1).Wait());
+            Assert.DoesNotThrow(() => sut.Post().Wait());
         }
 
         [Test]
         public void Exceptions()
         {
             Assert.Throws<ArgumentNullException>(() => Api.Rest().New<IFoo>(null));
+        }
+
+        [Test]
+        public void Cancellation()
+        {
+            var sut = Api.Rest().New<ICancellationToken>(new Uri("http://localhost"), _server);
+
+            sut.None().Wait();
+            sut.Value().Wait();
+            sut.Nullable().Wait();
         }
     }
 
@@ -215,6 +225,18 @@ namespace Bede.Thallium.UnitTests
     public interface IStaticHeader
     {
         [Post]
-        Task Post(long body);
+        Task Post();
+    }
+
+    public interface ICancellationToken
+    {
+        [Get]
+        Task None();
+
+        [Get]
+        Task Value(CancellationToken token = default(CancellationToken));
+
+        [Get]
+        Task Nullable(CancellationToken? token = null);
     }
 }

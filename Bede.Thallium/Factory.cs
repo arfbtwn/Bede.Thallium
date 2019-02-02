@@ -300,13 +300,14 @@ namespace Bede.Thallium
                 if (caTok != null)
                 {
                     ilG.Emit(OpCodes.Ldarg, caTok.Position + 1);
-
                     ilG.EmitNullConversion(caTok.ParameterType);
                 }
                 else
                 {
-                    ilG.Emit(OpCodes.Ldnull);
-                    ilG.Emit(OpCodes.Castclass, typeof(CancellationToken?));
+                    LocalBuilder caTokF = ilG.DeclareLocal(typeof(CancellationToken?));
+                    ilG.Emit(OpCodes.Ldloca, caTokF);
+                    ilG.Emit(OpCodes.Initobj, typeof(CancellationToken?));
+                    ilG.Emit(OpCodes.Ldloc, caTokF);
                 }
 
                 // Call SendAsync

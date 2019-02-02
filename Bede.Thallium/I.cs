@@ -78,13 +78,7 @@ namespace Bede.Thallium
 
             if (nt != source)
             {
-                var br = @this.DefineLabel();
-                @this.Emit(OpCodes.Dup);
-                @this.Emit(OpCodes.Brfalse, br);
-
                 @this.Emit(OpCodes.Newobj, nt.GetConstructor(new [] { source }));
-
-                @this.MarkLabel(br);
             }
         }
     }
