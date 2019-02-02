@@ -174,14 +174,15 @@ namespace Bede.Thallium
                     continue;
                 }
 
+                Assertion.IsAsync(method);
+
                 var call = introspector.Call(parent, method);
+
+                Assertion.HasValidDescription(method, call);
 
                 call.Headers = call.Headers ?? new Headers();
                 call.Body    = call.Body    ?? new Body();
                 call.Static  = call.Static  ?? new Static();
-
-                Assertion.IsAsync(method);
-                Assertion.HasValidDescription(method, call);
 
                 var args = method.GetParameters();
 
