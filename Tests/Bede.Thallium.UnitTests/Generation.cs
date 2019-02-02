@@ -34,7 +34,7 @@ namespace Bede.Thallium.UnitTests
         [HttpDelete]
         public Task Delete(long id) => Task.FromResult(true);
 
-        [Put, System.Web.Http.Route("valueType")]
+        [HttpPut, System.Web.Http.Route("valueType")]
         public Task Put(long id) => Task.FromResult(true);
     }
 
